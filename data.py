@@ -122,6 +122,23 @@ def fetchEventData(eventSku : str):
             skills = {"auton" : autonSkills, "autonRank" : autonSkillsRank, "driver" : driverSkills, "driverRank" : driverSkillsRank}
 
             teamInfo[i["number"]] = [i["team_name"], i["organization"], i["id"], skills]
+
+
+            matchesURL = f"https://www.robotevents.com/api/v2/teams/{i["id"]}/matches?per_page=1000"
+
+            driver.get(matchesURL)
+
+            matchesSource = driver.page_source
+            jsonStart = matchesSource.find("<pre>")
+            jsonEnd = matchesSource.find("</pre>")
+
+            matchesSource = matchesSource[jsonStart + 5:jsonEnd]
+            matchesData = json.loads(matchesSource)["data"]
+
+            for n in matchesData:
+                if n["event"]["code"] == eventSku:
+                    # add data to dict
+                    print()
         
     finally:
         driver.quit()
