@@ -91,8 +91,7 @@ def fetchEventData(eventSku : str):
             skillsURL = f"https://www.robotevents.com/api/v2/teams/{i["id"]}/skills?per_page=500"
 
             driver.get(skillsURL)
-
-
+            
             skillsSource = driver.page_source
             jsonStart = skillsSource.find("<pre>")
             jsonEnd = skillsSource.find("</pre>")
@@ -121,7 +120,6 @@ def fetchEventData(eventSku : str):
 
             skills = {"auton" : autonSkills, "autonRank" : autonSkillsRank, "driver" : driverSkills, "driverRank" : driverSkillsRank}
 
-            teamInfo[i["number"]] = [i["team_name"], i["organization"], i["id"], skills]
 
 
             matchesURL = f"https://www.robotevents.com/api/v2/teams/{i["id"]}/matches?per_page=1000"
@@ -133,12 +131,95 @@ def fetchEventData(eventSku : str):
             jsonEnd = matchesSource.find("</pre>")
 
             matchesSource = matchesSource[jsonStart + 5:jsonEnd]
-            matchesData = json.loads(matchesSource)["data"]
+            matchesData = json.loads(matchesSource)
+
+            pageNum = matchesData["meta"]["last_page"]
+
+            matchesData = matchesData["data"]
+
+            if pageNum > 1:
+                for n in range(2, pageNum + 1):
+                    driver.get(matchesURL + f"?page={n}")
+
+                    matchesSource = driver.page_source
+                    jsonStart = matchesSource.find("<pre>")
+                    jsonEnd = matchesSource.find("</pre>")
+
+                    matchesSource = matchesSource[jsonStart + 5:jsonEnd]
+                    matchesData = matchesData + json.loads(matchesSource)["data"]
+
+            matches = {}
 
             for n in matchesData:
                 if n["event"]["code"] == eventSku:
-                    # add data to dict
-                    print()
+                    teams = {}
+
+                    blue = n["alliances"][0]["teams"]
+                    red = n["alliances"][1]["teams"]
+
+                    # Checks which alliance the team is a part of and adds their team number first and then their alliance's team number
+
+                    if (blue[0]["team"]["name"] == i["number"]):
+                        teams["alliance"] = [i["number"], blue[1]["team"]["name"], "Blue", n["alliances"][0]["score"]]
+
+                    elif (blue[1]["team"]["name"] == i["number"]):
+                        teams["alliance"] = [i["number"], blue[0]["team"]["name"], "Blue", n["alliances"][0]["score"]]
+
+                    elif (red[0]["team"]["name"] == i["number"]):
+                        teams["alliance"] = [i["number"], red[1]["team"]["name"], "Red", n["alliances"][1]["score"]]
+
+                    elif (red[1]["team"]["name"] == i["number"]):
+                        teams["alliance"] = [i["number"], red[0]["team"]["name"], "Red", n["alliances"][1]["score"]]
+                    
+
+                    if teams["alliance"][2] == "Blue":
+                        teams["opponents"] = [red[0]["team"]["name"], red[1]["team"]["name"], "Red", n["alliances"][1]["score"]]
+                    
+                    else:
+                        teams["opponents"] = [blue[0]["team"]["name"], blue[1]["team"]["name"], "Blue", n["alliances"][0]["score"]]
+
+                    result = ""
+
+                    if teams["alliance"][3] > teams["opponents"][3]:
+                        result = "Win"
+                    elif teams["alliance"][3] < teams["opponents"][3]:
+                        result = "Loss"
+                    elif teams["alliance"][3] == teams["opponents"][3]:
+                        result = "Tie"
+                    else:
+                        result = "Invalid Match Result"
+
+                    matches[n["name"]] = {"teams" : teams, "result" : result}
+
+            teamInfo[i["number"]] = {"name" : i["team_name"], "organization" : i["organization"], "id" : i["id"],
+                                      "skills" : skills, "matches" : matches}
+            
+        rankingsURL = f"https://www.robotevents.com/api/v2/events/{eventID}/divisions/1/rankings"
+
+        driver.get(rankingsURL)
+
+        rankingsSource = driver.page_source
+        jsonStart = rankingsSource.find("<pre>")
+        jsonEnd = rankingsSource.find("</pre>")
+
+        rankingsSource = rankingsSource[jsonStart + 5:jsonEnd]
+        rankingsData = json.loads(rankingsSource)["data"]
+
+        rank = 0
+        results = {}
+        for i in rankingsData:
+                rank = i["rank"]
+                results["wins"] = i["wins"]
+                results["losses"] = i["losses"]
+                results["ties"] = i["ties"]
+
+                info = teamInfo[i["team"]["name"]]
+                info["rank"] = rank
+                info["results"] = results
+
+                teamInfo[i["team"]["name"]] = info
+
+        
         
     finally:
         driver.quit()
@@ -146,11 +227,8 @@ def fetchEventData(eventSku : str):
     return teamInfo
 
 def refreshData():
-    while True:
-        teamInfo = fetchEventData(eventSku)
+    teamInfo = fetchEventData(eventSku)
 
-        file = open("teamInfo.txt", "w")
-        file.write(str(teamInfo))
-        file.close()
-
-        time.sleep(300)
+    file = open("teamInfo.txt", "w")
+    file.write(str(teamInfo).replace("'", '"'))
+    file.close()
