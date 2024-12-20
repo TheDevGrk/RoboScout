@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 import os
 import time
 import json
+import datetime
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -26,10 +27,9 @@ options.add_argument('log-level=3')
 options.headless = True
 options.binary_location = bravePath
 service = Service(driverPath)
-
+driver = webdriver.Chrome(service=service, options=options)
 
 def fetchEventData(eventSku : str):
-    driver = webdriver.Chrome(service=service, options=options)
     eventURL = f"https://www.robotevents.com/api/v2/events?sku%5B%5D={eventSku}&myEvents=false"
     loginURL = "https://www.robotevents.com/auth/login"
 
@@ -194,7 +194,7 @@ def fetchEventData(eventSku : str):
             teamInfo[i["number"]] = {"name" : i["team_name"], "organization" : i["organization"], "id" : i["id"],
                                       "skills" : skills, "matches" : matches}
             
-        rankingsURL = f"https://www.robotevents.com/api/v2/events/{eventID}/divisions/1/rankings"
+        rankingsURL = f"https://www.robotevents.com/api/v2/events/{eventID}/divisions/1/rankings?per_page=100"
 
         driver.get(rankingsURL)
 
@@ -205,7 +205,7 @@ def fetchEventData(eventSku : str):
         rankingsSource = rankingsSource[jsonStart + 5:jsonEnd]
         rankingsData = json.loads(rankingsSource)["data"]
 
-        rank = 0
+        rank = 1
         results = {}
         for i in rankingsData:
                 rank = i["rank"]
@@ -234,3 +234,9 @@ def refreshData():
         file.write(str(teamInfo).replace("'", '"'))
         file.close()
         time.sleep(180)
+
+def findEvents(startDate : datetime.date = datetime.date(2020, 1, 1),
+                endDate : datetime.date = datetime.date(2020, 1, 1),
+                country : str = "United States", state : str = "N/A",
+                teamNumber : str = "N/A"):
+    print()
