@@ -227,8 +227,10 @@ def fetchEventData(eventSku : str):
     return teamInfo
 
 def refreshData():
-    teamInfo = fetchEventData(eventSku)
+    while True:
+        teamInfo = fetchEventData(eventSku)
 
-    file = open("teamInfo.txt", "w")
-    file.write(str(teamInfo).replace("'", '"'))
-    file.close()
+        file = open("teamInfo.txt", "w")
+        file.write(str(teamInfo).replace("'", '"'))
+        file.close()
+        time.sleep(180)
