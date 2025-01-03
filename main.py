@@ -53,7 +53,7 @@ validCharacters = [
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
-# pool.apply_async(data.refreshData)
+pool.apply_async(data.refreshData)
 
 @st.fragment(run_every="25s")
 def refreshFragment():
@@ -71,21 +71,23 @@ def search(startDate, endDate, country, state, teamNumber):
 
 refreshFragment()
 
-startDate = st.date_input("Filter by start date", datetime.date(2020, 1, 1))
-endDate = st.date_input("Filter by end date")
+# startDate = st.date_input("Filter by start date", datetime.date(2020, 1, 1))
+# endDate = st.date_input("Filter by end date")
 
-country = st.selectbox("Filter by Country", countries, index = countries.index("United States"), placeholder = "Choose a Country")
-state = st.selectbox("Filter by State (US Only)", ["N/A"] + states, placeholder = "Choose a State")
+# country = st.selectbox("Filter by Country", countries, index = countries.index("United States"), placeholder = "Choose a Country")
+# state = st.selectbox("Filter by State (US Only)", ["N/A"] + states, placeholder = "Choose a State")
 
-teamFilter = st.text_input("Filter by Team Number (Optional)", value = "N/A", placeholder = "Type a team number (Ex. 123A)")
+# teamFilter = st.text_input("Filter by Team Number (Optional)", value = "N/A", placeholder = "Type a team number (Ex. 123A)")
 
-for i in teamFilter:
-    if i not in validCharacters:
-        teamFilter = teamFilter.replace(i, "")
+# for i in teamFilter:
+#     if i not in validCharacters:
+#         teamFilter = teamFilter.replace(i, "")
 
-if teamFilter == "":
-    teamFilter = "N/A"
+# if teamFilter == "":
+#     teamFilter = "N/A"
 
-st.selectbox("Event", ["Test1", "Test2"])
+# st.selectbox("Event", ["Test1", "Test2"])
 
-searchButton = st.button("Find Events", on_click = search, args = (startDate, endDate, country, state, teamFilter))
+# searchButton = st.button("Find Events", on_click = search, args = (startDate, endDate, country, state, teamFilter))
+
+

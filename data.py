@@ -29,36 +29,31 @@ options.binary_location = bravePath
 service = Service(driverPath)
 
 def loginAPI():
+    driver = webdriver.Chrome(service=service, options=options)
 
-    try:
-        driver = webdriver.Chrome(service=service, options=options)
+    loginURL = "https://www.robotevents.com/auth/login"
 
-        loginURL = "https://www.robotevents.com/auth/login"
+    driver.get(loginURL)
 
-        driver.get(loginURL)
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "email")))
 
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "email")))
+    emailField = driver.find_element(By.NAME, "email")
+    emailField.send_keys(email)
 
-        emailField = driver.find_element(By.NAME, "email")
-        emailField.send_keys(email)
+    passwordField = driver.find_element(By.NAME, "password")
+    passwordField.send_keys(password)
 
-        passwordField = driver.find_element(By.NAME, "password")
-        passwordField.send_keys(password)
+    passwordField.send_keys(Keys.RETURN)
 
-        passwordField.send_keys(Keys.RETURN)
-
-        WebDriverWait(driver, 10).until(EC.url_changes(loginURL))
+    WebDriverWait(driver, 10).until(EC.url_changes(loginURL))
     
-    finally:
-        driver.quit()
+    return driver
 
 def fetchEventData(eventSku : str):
     eventURL = f"https://www.robotevents.com/api/v2/events?sku%5B%5D={eventSku}&myEvents=false"
 
     try:
-        driver = webdriver.Chrome(service=service, options=options)
-
-        loginAPI()
+        driver = loginAPI()
 
         driver.get(eventURL)
 
@@ -243,7 +238,7 @@ def refreshData():
         file = open("teamInfo.txt", "w")
         file.write(str(teamInfo).replace("'", '"'))
         file.close()
-        time.sleep(180)
+        time.sleep(25)
 
 def findTeam(number : str):
     returnValue = {}
