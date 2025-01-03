@@ -4,6 +4,7 @@ import streamlit as st
 import streamlit_modal as modal
 import json
 import time
+import datetime
 
 
 pool = ThreadPool(processes=2)
@@ -64,12 +65,13 @@ def refreshFragment():
     
     st.session_state["teamInfo"] = teamInfo
 
-def search(teamFilter : str):
-    print(teamFilter)
+def search(startDate, endDate, country, state, teamNumber):
+    pool.apply_async(data.findEvents, (startDate, endDate, country, state, teamNumber))
+    print(1)
 
 refreshFragment()
 
-startDate = st.date_input("Filter by start date")
+startDate = st.date_input("Filter by start date", datetime.date(2020, 1, 1))
 endDate = st.date_input("Filter by end date")
 
 country = st.selectbox("Filter by Country", countries, index = countries.index("United States"), placeholder = "Choose a Country")
@@ -86,4 +88,4 @@ if teamFilter == "":
 
 st.selectbox("Event", ["Test1", "Test2"])
 
-searchButton = st.button("Find Events", on_click = search, args = (str(teamFilter)))
+searchButton = st.button("Find Events", on_click = search, args = (startDate, endDate, country, state, teamFilter))

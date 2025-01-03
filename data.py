@@ -27,13 +27,14 @@ options.add_argument('log-level=3')
 options.headless = True
 options.binary_location = bravePath
 service = Service(driverPath)
-driver = webdriver.Chrome(service=service, options=options)
 
-def fetchEventData(eventSku : str):
-    eventURL = f"https://www.robotevents.com/api/v2/events?sku%5B%5D={eventSku}&myEvents=false"
-    loginURL = "https://www.robotevents.com/auth/login"
+def loginAPI():
 
     try:
+        driver = webdriver.Chrome(service=service, options=options)
+
+        loginURL = "https://www.robotevents.com/auth/login"
+
         driver.get(loginURL)
 
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "email")))
@@ -47,6 +48,17 @@ def fetchEventData(eventSku : str):
         passwordField.send_keys(Keys.RETURN)
 
         WebDriverWait(driver, 10).until(EC.url_changes(loginURL))
+    
+    finally:
+        driver.quit()
+
+def fetchEventData(eventSku : str):
+    eventURL = f"https://www.robotevents.com/api/v2/events?sku%5B%5D={eventSku}&myEvents=false"
+
+    try:
+        driver = webdriver.Chrome(service=service, options=options)
+
+        loginAPI()
 
         driver.get(eventURL)
 
@@ -219,8 +231,6 @@ def fetchEventData(eventSku : str):
 
                 teamInfo[i["team"]["name"]] = info
 
-        
-        
     finally:
         driver.quit()
 
@@ -235,8 +245,63 @@ def refreshData():
         file.close()
         time.sleep(180)
 
+def findTeam(number : str):
+    returnValue = {}
+    try:
+        driver = webdriver.Chrome(service=service, options=options)
+
+        loginAPI()
+
+        findTeamURL = f"https://www.robotevents.com/api/v2/teams?number%5B%5D={number}"
+
+        driver.get(findTeamURL)
+        
+        teamSource = driver.page_source
+        jsonStart = teamSource.find("<pre>")
+        jsonEnd = teamSource.find("</pre>")
+
+        teamSource = teamSource[jsonStart + 5:jsonEnd]
+        teamData = json.loads(teamSource)["data"]
+
+        if teamData != []:
+            returnValue = {"id" : teamData["id"], "number" : teamData["number"], "name" : teamData["team_name"], "organization" : teamData["organization"]}
+        else:
+            returnValue = None
+    
+    finally:
+        driver.quit()
+        return returnValue
+
 def findEvents(startDate : datetime.date = datetime.date(2020, 1, 1),
-                endDate : datetime.date = datetime.date(2020, 1, 1),
+                endDate : datetime.date = datetime.date.today(),
                 country : str = "United States", state : str = "N/A",
                 teamNumber : str = "N/A"):
-    print()
+    try:
+        driver = webdriver.Chrome(service=service, options=options)
+
+        region = ""
+
+        if country != "United States" or (country == "United States" and state == "N/A"):
+            region = country
+        else:
+            region = state
+
+        findEventsURL = f"https://www.robotevents.com/api/v2/events?start={startDate}&end={endDate}&region={region}"
+
+        if teamNumber != "N/A":
+            teamData = findTeam(teamNumber)
+            findEventsURL = findEventsURL + f"team%5B%5D={teamData["id"]}"
+
+        driver.get(findEventsURL)
+
+        eventSource = driver.page_source
+        jsonStart = eventSource.find("<pre>")
+        jsonEnd = eventSource.find("</pre>")
+
+        eventSkuSource = eventSource[jsonStart + 5:jsonEnd]
+        eventData = json.loads(eventSource)["data"]   
+
+        print(findEventsURL)
+    
+    finally:
+        driver.quit()
