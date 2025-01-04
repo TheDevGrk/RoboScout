@@ -61,9 +61,14 @@ def refreshFragment():
     teamInfo = json.loads(file.read())
     file.close()
 
+    file = open("matches.txt", "r")
+    matches = list(file.read())
+    file.close()
+
     # st.write(teamInfo)
     
     st.session_state["teamInfo"] = teamInfo
+    st.session_state["matches"] = matches
 
 def search(startDate, endDate, country, state, teamNumber):
     pool.apply_async(data.findEvents, (startDate, endDate, country, state, teamNumber))
@@ -90,4 +95,13 @@ refreshFragment()
 
 # searchButton = st.button("Find Events", on_click = search, args = (startDate, endDate, country, state, teamFilter))
 
+teams = []
+for i in st.session_state["teamInfo"]:
+    teams.append(i)
 
+
+
+st.write("Filter Inputs")
+
+st.selectbox("Filter by Team", teams)
+st.selectbox("Filter by Match", st.session_state["matches"])

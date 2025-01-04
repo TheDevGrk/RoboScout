@@ -214,6 +214,7 @@ def fetchEventData(eventSku : str):
 
         rank = 1
         results = {}
+
         for i in rankingsData:
                 rank = i["rank"]
                 results["wins"] = i["wins"]
@@ -226,19 +227,48 @@ def fetchEventData(eventSku : str):
 
                 teamInfo[i["team"]["name"]] = info
 
-    finally:
-        driver.quit()
+        matchURL = f"https://www.robotevents.com/api/v2/events/{eventID}/divisions/1/matches"
 
-    return teamInfo
+        driver.get(matchURL)
+
+        matchSource = driver.page_source
+
+        jsonStart = matchSource.find("<pre>")
+        jsonEnd = matchSource.find("</pre>")
+
+        matchSource = matchSource[jsonStart + 5:jsonEnd]
+        matchData = json.loads(matchSource)
+
+        matchData = matchData["data"]
+
+        match = []
+
+        for i in matchesData:
+            match.append(i["name"])       
+
+    finally:
+        # driver.quit()
+
+        print(match, 1)
+    return [teamInfo, eventID, match]
 
 def refreshData():
     while True:
-        teamInfo = fetchEventData(eventSku)
+        data = fetchEventData(eventSku)
+
+        teamInfo = data[0]
+        eventID = data[1]
+        matches = data[2]
 
         file = open("teamInfo.txt", "w")
         file.write(str(teamInfo).replace("'", '"'))
         file.close()
-        time.sleep(25)
+        print(2)
+        # file = open("matches.txt", "w")
+        # file.write(str(matches))
+        # file.close()
+        
+        time.sleep(180)
 
 def findTeam(number : str):
     returnValue = {}
