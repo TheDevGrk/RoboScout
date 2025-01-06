@@ -213,63 +213,35 @@ def refreshData():
         
         time.sleep(600)
 
-# def findTeam(number : str):
-#     returnValue = {}
-#     try:
-#         driver = webdriver.Chrome(service=service, options=options)
+def findTeam(number : str):
+    returnValue = {}
+    findTeamURL = f"https://www.robotevents.com/api/v2/teams?number%5B%5D={number}"
 
-#         loginAPI()
+    teamData = getURL(findTeamURL)["data"]
 
-#         findTeamURL = f"https://www.robotevents.com/api/v2/teams?number%5B%5D={number}"
+    if teamData != []:
+        returnValue = {"id" : teamData["id"], "number" : teamData["number"], "name" : teamData["team_name"], "organization" : teamData["organization"]}
+    else:
+        returnValue = None
 
-#         driver.get(findTeamURL)
-        
-#         teamSource = driver.page_source
-#         jsonStart = teamSource.find("<pre>")
-#         jsonEnd = teamSource.find("</pre>")
+        return returnValue
 
-#         teamSource = teamSource[jsonStart + 5:jsonEnd]
-#         teamData = json.loads(teamSource)["data"]
-
-#         if teamData != []:
-#             returnValue = {"id" : teamData["id"], "number" : teamData["number"], "name" : teamData["team_name"], "organization" : teamData["organization"]}
-#         else:
-#             returnValue = None
+def findEvents(startDate : datetime.date = datetime.date(2020, 1, 1),
+                endDate : datetime.date = datetime.date.today(),
+                country : str = "United States", state : str = "N/A",
+                teamNumber : str = "N/A"):
     
-#     finally:
-#         driver.quit()
-#         return returnValue
+    region = ""
 
-# def findEvents(startDate : datetime.date = datetime.date(2020, 1, 1),
-#                 endDate : datetime.date = datetime.date.today(),
-#                 country : str = "United States", state : str = "N/A",
-#                 teamNumber : str = "N/A"):
-#     try:
-#         driver = webdriver.Chrome(service=service, options=options)
+    if country != "United States" or (country == "United States" and state == "N/A"):
+        region = country
+    else:
+        region = state
 
-#         region = ""
+    findEventsURL = f"https://www.robotevents.com/api/v2/events?start={startDate}&end={endDate}&region={region}"
 
-#         if country != "United States" or (country == "United States" and state == "N/A"):
-#             region = country
-#         else:
-#             region = state
+    if teamNumber != "N/A":
+        teamData = findTeam(teamNumber)
+        findEventsURL = findEventsURL + f"team%5B%5D={teamData["id"]}"
 
-#         findEventsURL = f"https://www.robotevents.com/api/v2/events?start={startDate}&end={endDate}&region={region}"
-
-#         if teamNumber != "N/A":
-#             teamData = findTeam(teamNumber)
-#             findEventsURL = findEventsURL + f"team%5B%5D={teamData["id"]}"
-
-#         driver.get(findEventsURL)
-
-#         eventSource = driver.page_source
-#         jsonStart = eventSource.find("<pre>")
-#         jsonEnd = eventSource.find("</pre>")
-
-#         eventSkuSource = eventSource[jsonStart + 5:jsonEnd]
-#         eventData = json.loads(eventSource)["data"]   
-
-#         print(findEventsURL)
-    
-#     finally:
-#         driver.quit()
+        eventData = getURL(findEventsURL)["data"]   
