@@ -62,13 +62,15 @@ def refreshFragment():
     file.close()
 
     file = open("matches.txt", "r")
-    matches = list(file.read())
+    matches = file.read()
     file.close()
+
+    print(matches, type(matches))
 
     # st.write(teamInfo)
     
     st.session_state["teamInfo"] = teamInfo
-    st.session_state["matches"] = matches
+    st.session_state["matches"] = list(matches)
 
 def search(startDate, endDate, country, state, teamNumber):
     pool.apply_async(data.findEvents, (startDate, endDate, country, state, teamNumber))
