@@ -5,6 +5,7 @@ import streamlit_modal as modal
 import json
 import time
 import datetime
+import ast
 
 
 pool = ThreadPool(processes=2)
@@ -53,10 +54,10 @@ validCharacters = [
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
-pool.apply_async(data.refreshData)
+# pool.apply_async(data.refreshData)
 
 @st.fragment(run_every="25s")
-def refreshFragment():
+def refreshInfo():
     file = open("teamInfo.txt", "r")
     teamInfo = json.loads(file.read())
     file.close()
@@ -64,19 +65,28 @@ def refreshFragment():
     file = open("matches.txt", "r")
     matches = file.read()
     file.close()
-
-    print(matches, type(matches))
-
-    # st.write(teamInfo)
     
     st.session_state["teamInfo"] = teamInfo
-    st.session_state["matches"] = list(matches)
+    st.session_state["matches"] = ast.literal_eval(matches)
 
 def search(startDate, endDate, country, state, teamNumber):
     pool.apply_async(data.findEvents, (startDate, endDate, country, state, teamNumber))
-    print(1)
 
-refreshFragment()
+@st.fragment(run_every = "25s")
+def refreshFilters()
+    teams = []
+    for i in st.session_state["teamInfo"]:
+        teams.append(i)
+
+    st.write("Filter Inputs")
+
+    team = st.selectbox("Filter by Team", ["Select a Team"] + teams)
+    match = st.selectbox("Filter by Match", ["Select a Match"] + st.session_state["matches"])
+
+    data.filter(team, match)
+
+refreshInfo()
+refreshFilters()
 
 # startDate = st.date_input("Filter by start date", datetime.date(2020, 1, 1))
 # endDate = st.date_input("Filter by end date")
@@ -96,14 +106,3 @@ refreshFragment()
 # st.selectbox("Event", ["Test1", "Test2"])
 
 # searchButton = st.button("Find Events", on_click = search, args = (startDate, endDate, country, state, teamFilter))
-
-teams = []
-for i in st.session_state["teamInfo"]:
-    teams.append(i)
-
-
-
-st.write("Filter Inputs")
-
-st.selectbox("Filter by Team", teams)
-st.selectbox("Filter by Match", st.session_state["matches"])

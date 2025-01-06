@@ -41,32 +41,27 @@ def getURL(url):
     response = requests.get(url, headers = headers)
 
     print(response.status_code)
+
+    if response.status_code != 200:
+        print(url)
     return response.json()
 
 def fetchEventData(eventSku : str):
-    print(0)
     eventURL = f"https://www.robotevents.com/api/v2/events?sku%5B%5D={eventSku}&myEvents=false"
 
     eventData = getURL(eventURL)
     time.sleep(1)
 
-    print(1)
-
     eventID = eventData["data"][0]["id"]
     teamsURL = f"https://www.robotevents.com/api/v2/events/{eventID}/teams"
 
-    print(1.1)
-
     teamsData = getURL(teamsURL)
+
     time.sleep(1)
-    print(1.11)
+
     pageNum = teamsData["meta"]["last_page"]
 
-    print(1.2)
-
     teamsData = teamsData["data"]
-
-    print(2)
 
     if pageNum > 1:
         for i in range(2, pageNum + 1):
@@ -74,7 +69,7 @@ def fetchEventData(eventSku : str):
 
     
     teamInfo = {}
-    print(3)
+
     for i in teamsData:
         skillsURL = f"https://www.robotevents.com/api/v2/teams/{i["id"]}/skills?per_page=500"
 
@@ -182,22 +177,21 @@ def fetchEventData(eventSku : str):
 
             teamInfo[i["team"]["name"]] = info
 
-    matchURL = f"https://www.robotevents.com/api/v2/events/{eventID}/divisions/1/matches"
+    matchURL = f"https://www.robotevents.com/api/v2/events/{eventID}/divisions/1/matches?per_page=100"
 
     matchData = getURL(matchURL)["data"]
 
     match = []
 
-    for i in matchesData:
-        match.append(i["name"])       
+    for i in matchData:
+        if str(i["name"]).startswith("Qualifier"):
+            match.append(i["name"])  
 
     return [teamInfo, eventID, match]
 
 def refreshData():
     while True:
         data = fetchEventData(eventSku)
-
-        print(5)
 
         teamInfo = data[0]
         eventID = data[1]
@@ -206,7 +200,7 @@ def refreshData():
         file = open("teamInfo.txt", "w")
         file.write(str(teamInfo).replace("'", '"'))
         file.close()
-        print(2)
+
         file = open("matches.txt", "w")
         file.write(str(matches))
         file.close()
@@ -245,3 +239,4 @@ def findEvents(startDate : datetime.date = datetime.date(2020, 1, 1),
         findEventsURL = findEventsURL + f"team%5B%5D={teamData["id"]}"
 
         eventData = getURL(findEventsURL)["data"]   
+
