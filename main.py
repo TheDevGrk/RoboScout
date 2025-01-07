@@ -62,6 +62,8 @@ def refreshInfo():
     teamInfo = json.loads(file.read())
     file.close()
 
+    st.nu
+
     file = open("matches.txt", "r")
     matches = file.read()
     file.close()
@@ -73,7 +75,7 @@ def search(startDate, endDate, country, state, teamNumber):
     pool.apply_async(data.findEvents, (startDate, endDate, country, state, teamNumber))
 
 @st.fragment(run_every = "25s")
-def refreshFilters()
+def refreshFilters():
     teams = []
     for i in st.session_state["teamInfo"]:
         teams.append(i)
@@ -83,7 +85,7 @@ def refreshFilters()
     team = st.selectbox("Filter by Team", ["Select a Team"] + teams)
     match = st.selectbox("Filter by Match", ["Select a Match"] + st.session_state["matches"])
 
-    data.filter(team, match)
+    data.filterInputs(team, match)
 
 refreshInfo()
 refreshFilters()

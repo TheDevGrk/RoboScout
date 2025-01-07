@@ -5,15 +5,6 @@ import json
 import datetime
 import requests
 
-# from selenium import webdriver
-# from selenium.webdriver.common.keys import Keys
-# from selenium.webdriver.common.by import By
-# from selenium.webdriver.chrome.service import Service
-# from selenium.webdriver.chrome.options import Options
-# from selenium.webdriver.support.ui import WebDriverWait
-# from selenium.webdriver.support import expected_conditions as EC
-
-
 load_dotenv()
 
 token = os.getenv("token")
@@ -22,12 +13,6 @@ password = os.getenv("password")
 bravePath = os.getenv("bravePath")
 driverPath = os.getenv("driverPath")
 eventSku = os.getenv("eventSku")
-
-# options = Options()
-# options.add_argument('log-level=3')
-# options.headless = True
-# options.binary_location = bravePath
-# service = Service(driverPath)
 
 file = open("token.txt", "r")
 token = file.read()
@@ -239,4 +224,89 @@ def findEvents(startDate : datetime.date = datetime.date(2020, 1, 1),
         findEventsURL = findEventsURL + f"team%5B%5D={teamData["id"]}"
 
         eventData = getURL(findEventsURL)["data"]   
+
+def filterInputs(team, match):
+
+    output = {"popup" : None, "title" : None, "subtitle" : None, "inputs" : {}}
+
+    file = open("teamInfo.txt", "r")
+    teamInfo = json.loads(file.read())
+    file.close()
+
+    if team == "Select a Team":
+        team = None
+    if match == "Select a Match":
+        match = None
+    
+    if match == None and team == None:
+        output["popup"] = "You must choose some filters!"
+    
+    elif match != None and team!= None:
+
+        for i in teamInfo:
+
+            if i == team:
+
+                matchFound = False
+
+                for n in teamInfo[i]["matches"]:
+                    if n == match:
+                        matchFound = True
+                        matchInfo = team[i]["matches"][n]
+                        break
+                
+                if matchFound == False:
+                    output["popup"] = f"{team} was not in {match}"
+
+                else:
+                    output["title"] = team
+                    output["subtitle"] = match
+
+                    inputs = output["inputs"]
+                    
+                    inputs["Carried Status"] = {"type" : "selectbox", "options" : ["Neither team was carried.", "Yes, got carried.", "No, carried the other team."]}
+                    
+                    inputs["Violations"] = {"type" : "selectbox", "options" : ["None", "Minor", "Major"]}
+
+                    inputs["Driving Skills Rating"] = {"type" : "slider", "range": [0, 10], "step" : 0.25}
+                    
+                    inputs["Autonomous Rating"] = {"type" : "slider", "range": [0, 10], "step" : 0.25}
+
+
+                    output["inputs"] = inputs
+
+
+                break
+
+    elif team != None and match == None:
+        output["title"] = team
+        output["subtitle"] = match
+
+        inputs = output["inputs"]
+        
+        # This should disable all the rest of the fields if it is checked since it is an auto deny
+        inputs["Basic Bot"] = {"type" : "checkbox"}
+
+        inputs["Autonomous Side"] = {"type" : "selectbox", "options" : ["Select an Option", "Left", "Right", "Ambidexterous"]}
+        inputs["Autonomous Scoring Capabilities (Points)"] = {"type" : "slider", "range" : [0, 50], "step" : 1}
+        inputs["Autonomous Tasks Able to be Completed"] = {"type" : "multiselect", "options" : ["At least three rings scored", 
+                                                                                                "A minimum of two stakes with at least one ring scored",
+                                                                                                 "Not contacting or breaking the plane of the Starting Line",
+                                                                                                 "Contacting the ladder"]}
+
+        inputs["Can Score on Wall Stakes"] = {"type" : "checkbox"}
+        inputs["Can Score on High Stake"] = {"type" : "checkbox"}
+
+        inputs["Elevation Level"] = {"type" : "slider", "range" : [0, 3], "step" : 1}
+
+        inputs["Scoring Success Rate (%)"] = {"type" : "slider", "step" : 1}
+
+        inputs["Mobile Goal Moving Capabilities (Grip Strength)"] = {"type" : "slider", "range" : [0, 10], "step" : 1}
+
+        inputs["Robot Speed (RPM)"] = {"type" : "number_input", "range" : [0, 1000], "step" : 5}
+
+        # inputs["Ability To Bully (Strength)"] = {}
+        inputs["Potential to be Bullied (Estimated Weight in Pounds)"] = {"type" : "slider", "range" : [0, 5], "step" : 0.1}
+
+        inputs["Drivetrain Wheel Composition"] = {"type" : "selectbox", "options" : ["Select an Option", "All Omniwheels", "Partially Omniwheels", "No Omniwheels"]}
 
