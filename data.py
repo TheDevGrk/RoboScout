@@ -178,13 +178,17 @@ def refreshData():
     while True:
         data = fetchEventData(eventSku)
 
+        global globalEventID
+
         teamInfo = data[0]
-        eventID = data[1]
+        globalEventID = data[1]
         matches = data[2]
 
-        file = open("teamInfo.txt", "w")
-        file.write(str(teamInfo).replace("'", '"'))
+        file = open("teamInfo.json", "w")
+        json.dump(teamInfo, file)
         file.close()
+
+        print(1)
 
         file = open("matches.txt", "w")
         file.write(str(matches))
@@ -227,10 +231,19 @@ def findEvents(startDate : datetime.date = datetime.date(2020, 1, 1),
 
 def filterInputs(team, match):
 
-    output = {"popup" : None, "title" : None, "subtitle" : None, "inputs" : {}}
+    # output = {"popup" : None, "title" : None, "subtitle" : None, "inputs" : {}}
 
-    file = open("teamInfo.txt", "r")
-    teamInfo = json.loads(file.read())
+    output = {"popup" : None, "title" : None, "sections" : []}
+
+    def addSection(heading: str, inputs: dict):
+        output["sections"].append({
+            "heading" : heading,
+            "inputs" : inputs
+        })    
+
+
+    file = open("teamInfo.json", "r")
+    teamInfo = json.load(file)
     file.close()
 
     if team == "Select a Team":
@@ -260,9 +273,8 @@ def filterInputs(team, match):
 
                 else:
                     output["title"] = team
-                    output["subtitle"] = match
 
-                    inputs = output["inputs"]
+                    inputs = {}
                     
                     inputs["Carried Status"] = {"type" : "selectbox", "options" : ["Neither team was carried.", "Yes, got carried.", "No, carried the other team."]}
                     
@@ -273,16 +285,15 @@ def filterInputs(team, match):
                     inputs["Autonomous Rating"] = {"type" : "slider", "range": [0, 10], "step" : 0.25}
 
 
-                    output["inputs"] = inputs
+                    addSection(match, inputs)
 
 
                 break
 
     elif team != None and match == None:
         output["title"] = team
-        output["subtitle"] = match
 
-        inputs = output["inputs"]
+        inputs = {}
         
         # This should disable all the rest of the fields if it is checked since it is an auto deny
         inputs["Basic Bot"] = {"type" : "checkbox"}
@@ -310,3 +321,59 @@ def filterInputs(team, match):
 
         inputs["Drivetrain Wheel Composition"] = {"type" : "selectbox", "options" : ["Select an Option", "All Omniwheels", "Partially Omniwheels", "No Omniwheels"]}
 
+        addSection("General Info", inputs)
+
+        # TODO add code to create inputs for each of their matches here
+        
+        file = open("teamInfo.json", "r")
+        teamInfo = json.load(file)
+        file.close()
+
+        teamInfo = teamInfo[team]
+
+        for i in teamInfo["matches"]:
+            inputs = {}
+            
+            inputs["Carried Status"] = {"type" : "selectbox", "options" : ["Neither team was carried.", "Yes, got carried.", "No, carried the other team."]}
+            
+            inputs["Violations"] = {"type" : "selectbox", "options" : ["None", "Minor", "Major"]}
+
+            inputs["Driving Skills Rating"] = {"type" : "slider", "range": [0, 10], "step" : 0.25}
+            
+            inputs["Autonomous Rating"] = {"type" : "slider", "range": [0, 10], "step" : 0.25}
+
+            addSection(i, inputs)
+
+
+    elif team == None and match != None:
+        matchURL = f"https://www.robotevents.com/api/v2/events/{globalEventID}/divisions/1/matches?per_page=250"
+
+        matchData = getURL(matchURL)["data"]
+
+        for i in matchData:
+            if i["name"] == match:
+                matchData = i
+
+                break
+
+        output["title"] = match
+
+        for n in matchData["alliances"]:
+            for i in n["teams"]:
+                inputs = {}
+                
+                inputs["Carried Status"] = {"type" : "selectbox", "options" : ["Neither team was carried.", "Yes, got carried.", "No, carried the other team."]}
+                
+                inputs["Violations"] = {"type" : "selectbox", "options" : ["None", "Minor", "Major"]}
+
+                inputs["Driving Skills Rating"] = {"type" : "slider", "range": [0, 10], "step" : 0.25}
+                
+                inputs["Autonomous Rating"] = {"type" : "slider", "range": [0, 10], "step" : 0.25}
+
+                addSection(i["team"]["name"], inputs)
+
+    
+    with open("output.json", "w") as file:
+        json.dump(output, file)
+
+    return output

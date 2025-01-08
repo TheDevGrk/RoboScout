@@ -58,11 +58,9 @@ validCharacters = [
 
 @st.fragment(run_every="25s")
 def refreshInfo():
-    file = open("teamInfo.txt", "r")
-    teamInfo = json.loads(file.read())
+    file = open("teamInfo.json", "r")
+    teamInfo = json.load(file)
     file.close()
-
-    st.nu
 
     file = open("matches.txt", "r")
     matches = file.read()
@@ -84,6 +82,8 @@ def refreshFilters():
 
     team = st.selectbox("Filter by Team", ["Select a Team"] + teams)
     match = st.selectbox("Filter by Match", ["Select a Match"] + st.session_state["matches"])
+
+    searchButton = st.button("Search", on_click = data.filterInputs, args = (team, match))
 
     data.filterInputs(team, match)
 
