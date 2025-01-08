@@ -1,6 +1,6 @@
 .env
 token.txt
-data.cpython-312.pyc
+__pycache__
 teamInfo.json
 /venv/
 matches.txt

@@ -6,6 +6,7 @@ import json
 import time
 import datetime
 import ast
+import pageCreator
 
 
 pool = ThreadPool(processes=2)
@@ -69,8 +70,12 @@ def refreshInfo():
     st.session_state["teamInfo"] = teamInfo
     st.session_state["matches"] = ast.literal_eval(matches)
 
-def search(startDate, endDate, country, state, teamNumber):
+def searchEvents(startDate, endDate, country, state, teamNumber):
     pool.apply_async(data.findEvents, (startDate, endDate, country, state, teamNumber))
+
+def search(team, match):
+    st.session_state["filter"] = [team, match]
+    pageCreator.createSearchPage()
 
 @st.fragment(run_every = "25s")
 def refreshFilters():
@@ -83,7 +88,7 @@ def refreshFilters():
     team = st.selectbox("Filter by Team", ["Select a Team"] + teams)
     match = st.selectbox("Filter by Match", ["Select a Match"] + st.session_state["matches"])
 
-    searchButton = st.button("Search", on_click = data.filterInputs, args = (team, match))
+    searchButton = st.button("Search", on_click = search, args = (team, match))
 
     data.filterInputs(team, match)
 
