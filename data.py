@@ -10,8 +10,6 @@ load_dotenv()
 token = os.getenv("token")
 email = os.getenv("email")
 password = os.getenv("password")
-bravePath = os.getenv("bravePath")
-driverPath = os.getenv("driverPath")
 eventSku = os.getenv("eventSku")
 
 file = open("token.txt", "r")
@@ -230,9 +228,6 @@ def findEvents(startDate : datetime.date = datetime.date(2020, 1, 1),
         eventData = getURL(findEventsURL)["data"]   
 
 def filterInputs(team, match):
-
-    # output = {"popup" : None, "title" : None, "subtitle" : None, "inputs" : {}}
-
     output = {"popup" : None, "title" : None, "sections" : []}
 
     def addSection(heading: str, inputs: dict):

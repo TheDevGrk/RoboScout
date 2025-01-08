@@ -74,7 +74,7 @@ def searchEvents(startDate, endDate, country, state, teamNumber):
     pool.apply_async(data.findEvents, (startDate, endDate, country, state, teamNumber))
 
 def search(team, match):
-    st.session_state["filter"] = [team, match]
+    st.session_state["filters"] = [team, match]
     pageCreator.createSearchPage()
 
 @st.fragment(run_every = "25s")
@@ -83,7 +83,7 @@ def refreshFilters():
     for i in st.session_state["teamInfo"]:
         teams.append(i)
 
-    st.write("Filter Inputs")
+    st.title("Filter Inputs")
 
     team = st.selectbox("Filter by Team", ["Select a Team"] + teams)
     match = st.selectbox("Filter by Match", ["Select a Match"] + st.session_state["matches"])
