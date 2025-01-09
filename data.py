@@ -271,13 +271,13 @@ def filterInputs(team, match):
 
                     inputs = {}
                     
-                    inputs["Carried Status"] = {"type" : "selectbox", "options" : ["Neither team was carried.", "Yes, got carried.", "No, carried the other team."]}
+                    inputs["Carried Status"] = {"type" : "selectbox", "options" : ["Neither team was carried.", "Yes, got carried.", "No, carried the other team."], "key" : team + "-" + match}
                     
-                    inputs["Violations"] = {"type" : "selectbox", "options" : ["None", "Minor", "Major"]}
+                    inputs["Violations"] = {"type" : "selectbox", "options" : ["None", "Minor", "Major"], "key" : team + "-" + match}
 
-                    inputs["Driving Skills Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25}
+                    inputs["Driving Skills Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : team + "-" + match}
                     
-                    inputs["Autonomous Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25}
+                    inputs["Autonomous Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : team + "-" + match}
 
 
                     addSection(match, inputs)
@@ -291,34 +291,33 @@ def filterInputs(team, match):
         inputs = {}
         
         # This should disable all the rest of the fields if it is checked since it is an auto deny
-        inputs["Basic Bot"] = {"type" : "checkbox"}
+        inputs["Basic Bot"] = {"type" : "checkbox", "key" : team + "-general"}
 
-        inputs["Autonomous Side"] = {"type" : "selectbox", "options" : ["Select an Option", "Left", "Right", "Ambidexterous"]}
-        inputs["Autonomous Scoring Capabilities (Points)"] = {"type" : "slider", "range" : [0, 50], "step" : 1}
+        inputs["Autonomous Side"] = {"type" : "selectbox", "options" : ["Left", "Right", "Ambidexterous"], "key" : team + "-general"}
+        inputs["Autonomous Scoring Capabilities (Points)"] = {"type" : "slider", "range" : [0, 50], "step" : 1, "key" : team + "-general"}
         inputs["Autonomous Tasks Able to be Completed"] = {"type" : "multiselect", "options" : ["At least three rings scored", 
                                                                                                 "A minimum of two stakes with at least one ring scored",
                                                                                                  "Not contacting or breaking the plane of the Starting Line",
-                                                                                                 "Contacting the ladder"]}
+                                                                                                 "Contacting the ladder"], "key" : team + "-general"}
 
-        inputs["Can Score on Wall Stakes"] = {"type" : "checkbox"}
-        inputs["Can Score on High Stake"] = {"type" : "checkbox"}
+        inputs["Can Score on Wall Stakes"] = {"type" : "checkbox", "key" : team + "-general"}
+        inputs["Can Score on High Stake"] = {"type" : "checkbox", "key" : team + "-general"}
 
-        inputs["Elevation Level"] = {"type" : "slider", "range" : [0, 3], "step" : 1}
+        inputs["Elevation Level"] = {"type" : "slider", "range" : [0, 3], "step" : 1, "key" : team + "-general"}
 
-        inputs["Scoring Success Rate (%)"] = {"type" : "slider", "range" : [0, 100], "step" : 1}
+        inputs["Scoring Success Rate (%)"] = {"type" : "slider", "range" : [0, 100], "step" : 1, "key" : team + "-general"}
 
-        inputs["Mobile Goal Moving Capabilities (Grip Strength)"] = {"type" : "slider", "range" : [0, 10], "step" : 1}
+        inputs["Mobile Goal Moving Capabilities (Grip Strength)"] = {"type" : "slider", "range" : [0, 10], "step" : 1, "key" : team + "-general"}
 
-        inputs["Robot Speed (RPM)"] = {"type" : "number_input", "range" : [0, 1000], "step" : 5}
+        inputs["Robot Speed (RPM)"] = {"type" : "number_input", "range" : [0, 1000], "step" : 5, "key" : team + "-general"}
 
         # inputs["Ability To Bully (Strength)"] = {}
-        inputs["Potential to be Bullied (Estimated Weight in Pounds)"] = {"type" : "slider", "range" : [0.0, 25.0], "step" : 0.5}
+        inputs["Potential to be Bullied (Estimated Weight in Pounds)"] = {"type" : "slider", "range" : [0.0, 25.0], "step" : 0.5, "key" : team + "-general"}
 
-        inputs["Drivetrain Wheel Composition"] = {"type" : "selectbox", "options" : ["Select an Option", "All Omniwheels", "Partially Omniwheels", "No Omniwheels"]}
+        inputs["Drivetrain Wheel Composition"] = {"type" : "selectbox", "options" : ["All Omniwheels", "Partially Omniwheels", "No Omniwheels"], "key" : team + "-general"}
 
         addSection("General Info", inputs)
 
-        # TODO add code to create inputs for each of their matches here
         
         file = open("teamInfo.json", "r")
         teamInfo = json.load(file)
@@ -330,13 +329,13 @@ def filterInputs(team, match):
             if str(i).startswith("Qualifier"):
                 inputs = {}
                 
-                inputs["Carried Status"] = {"type" : "selectbox", "options" : ["Neither team was carried.", "Yes, got carried.", "No, carried the other team."], "key" : i}
+                inputs["Carried Status"] = {"type" : "selectbox", "options" : ["Neither team was carried.", "Yes, got carried.", "No, carried the other team."], "key" : team + "-" + i}
                 
-                inputs["Violations"] = {"type" : "selectbox", "options" : ["None", "Minor", "Major"], "key" : i}
+                inputs["Violations"] = {"type" : "selectbox", "options" : ["None", "Minor", "Major"], "key" : team + "-" + i}
 
-                inputs["Driving Skills Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : i}
+                inputs["Driving Skills Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : team + "-" + i}
                 
-                inputs["Autonomous Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : i}
+                inputs["Autonomous Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : team + "-" + i}
 
                 addSection(i, inputs)
 
@@ -361,13 +360,13 @@ def filterInputs(team, match):
 
                 inputs = {}
                 
-                inputs["Carried Status"] = {"type" : "selectbox", "options" : ["Neither team was carried.", "Yes, got carried.", "No, carried the other team."], "key" : i["team"]["name"]}
+                inputs["Carried Status"] = {"type" : "selectbox", "options" : ["Neither team was carried.", "Yes, got carried.", "No, carried the other team."], "key" : i["team"]["name"] + "-" + match}
                 
-                inputs["Violations"] = {"type" : "selectbox", "options" : ["None", "Minor", "Major"], "key" : i["team"]["name"]}
+                inputs["Violations"] = {"type" : "selectbox", "options" : ["None", "Minor", "Major"], "key" : i["team"]["name"] + "-" + match}
 
-                inputs["Driving Skills Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : i["team"]["name"]}
+                inputs["Driving Skills Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : i["team"]["name"] + "-" + match}
                 
-                inputs["Autonomous Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : i["team"]["name"]}
+                inputs["Autonomous Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : i["team"]["name"] + "-" + match}
 
                 addSection(f":{color}[{i["team"]["name"]}]", inputs)
 
