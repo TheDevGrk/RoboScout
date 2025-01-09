@@ -6,7 +6,7 @@ import json
 import time
 import datetime
 import ast
-import pageCreator
+import pages.searchResult as searchResult
 
 
 pool = ThreadPool(processes=2)
@@ -75,7 +75,9 @@ def searchEvents(startDate, endDate, country, state, teamNumber):
 
 def search(team, match):
     st.session_state["filters"] = [team, match]
-    pageCreator.createSearchPage()
+    searchResult.createSearchPage()
+
+    st.switch_page("pages/searchResult.py")
 
 @st.fragment(run_every = "25s")
 def refreshFilters():
@@ -89,8 +91,6 @@ def refreshFilters():
     match = st.selectbox("Filter by Match", ["Select a Match"] + st.session_state["matches"])
 
     searchButton = st.button("Search", on_click = search, args = (team, match))
-
-    data.filterInputs(team, match)
 
 refreshInfo()
 refreshFilters()

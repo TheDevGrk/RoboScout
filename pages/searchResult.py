@@ -6,6 +6,8 @@ import data as dataModule
 # then here grab those session states, feed it to the filterInputs functions, take that output data, and create the page here
 # should make it unique to each device in a pretty simple way
 
+st.set_page_config("Filter Results", initial_sidebar_state = "collapsed")
+
 def createSearchPage():
     filterInfo = st.session_state["filters"]
 
@@ -18,6 +20,5 @@ def createSearchPage():
     title = st.title(data["title"])
 
     # TODO 1st priority should be working on the page system (switching to page and then displaying on correct page), worry about page generation after
-
 
     # after page generation is done, redirect to the website/search page
