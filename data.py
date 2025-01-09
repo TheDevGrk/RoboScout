@@ -29,13 +29,17 @@ def getURL(url):
         print(url)
     return response.json()
 
-def fetchEventData(eventSku : str):
-    eventURL = f"https://www.robotevents.com/api/v2/events?sku%5B%5D={eventSku}&myEvents=false"
+def getEventID(sku):
+    eventURL = f"https://www.robotevents.com/api/v2/events?sku%5B%5D={sku}&myEvents=false"
 
     eventData = getURL(eventURL)
     time.sleep(1)
 
-    eventID = eventData["data"][0]["id"]
+    return eventData["data"][0]["id"]
+
+def fetchEventData(eventSku : str):
+    eventID = getEventID(eventSku)
+
     teamsURL = f"https://www.robotevents.com/api/v2/events/{eventID}/teams"
 
     teamsData = getURL(teamsURL)
@@ -170,23 +174,19 @@ def fetchEventData(eventSku : str):
         if str(i["name"]).startswith("Qualifier"):
             match.append(i["name"])  
 
-    return [teamInfo, eventID, match]
+    return [teamInfo, match]
 
 def refreshData():
     while True:
         data = fetchEventData(eventSku)
 
-        global globalEventID
 
         teamInfo = data[0]
-        globalEventID = data[1]
-        matches = data[2]
+        matches = data[1]
 
         file = open("teamInfo.json", "w")
         json.dump(teamInfo, file)
         file.close()
-
-        print(1)
 
         file = open("matches.txt", "w")
         file.write(str(matches))
@@ -260,7 +260,7 @@ def filterInputs(team, match):
                 for n in teamInfo[i]["matches"]:
                     if n == match:
                         matchFound = True
-                        matchInfo = team[i]["matches"][n]
+                        # matchInfo = team[i]["matches"][n]
                         break
                 
                 if matchFound == False:
@@ -341,7 +341,8 @@ def filterInputs(team, match):
 
 
     elif team == None and match != None:
-        matchURL = f"https://www.robotevents.com/api/v2/events/{globalEventID}/divisions/1/matches?per_page=250"
+        eventID = getEventID(eventSku)
+        matchURL = f"https://www.robotevents.com/api/v2/events/{eventID}/divisions/1/matches?per_page=250"
 
         matchData = getURL(matchURL)["data"]
 

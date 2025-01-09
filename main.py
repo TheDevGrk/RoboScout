@@ -73,12 +73,6 @@ def refreshInfo():
 def searchEvents(startDate, endDate, country, state, teamNumber):
     pool.apply_async(data.findEvents, (startDate, endDate, country, state, teamNumber))
 
-def search(team, match):
-    st.session_state["filters"] = [team, match]
-    searchResult.createSearchPage()
-
-    st.switch_page("pages/searchResult.py")
-
 @st.fragment(run_every = "25s")
 def refreshFilters():
     teams = []
@@ -90,7 +84,17 @@ def refreshFilters():
     team = st.selectbox("Filter by Team", ["Select a Team"] + teams)
     match = st.selectbox("Filter by Match", ["Select a Match"] + st.session_state["matches"])
 
-    searchButton = st.button("Search", on_click = search, args = (team, match))
+    searchButton = st.button("Search")
+
+    if searchButton:
+        filterData = data.filterInputs(team, match)
+
+        if filterData["popup"] != None:
+            st.write(f":red[{filterData["popup"]}]")
+
+        else:
+            st.session_state["filterData"] = filterData
+            st.switch_page("pages/searchResult.py")
 
 refreshInfo()
 refreshFilters()

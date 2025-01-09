@@ -9,16 +9,22 @@ import data as dataModule
 st.set_page_config("Filter Results", initial_sidebar_state = "collapsed")
 
 def createSearchPage():
-    filterInfo = st.session_state["filters"]
-
-    data = dataModule.filterInputs(filterInfo[0], filterInfo[1])
-
-    if data["popup"] != None:
-        st.write(f":red[{data["popup"]}]")
+    # st.switch_page("pages/searchResult.py")
+    if "filterData" not in st.session_state:
         return
+
+    data = st.session_state["filterData"]
+
+    # if data["popup"] != None:
+    #     st.switch_page("main.py")
+    #     # st.write(f":red[{data["popup"]}]")
+    #     return
     
     title = st.title(data["title"])
 
     # TODO 1st priority should be working on the page system (switching to page and then displaying on correct page), worry about page generation after
 
     # after page generation is done, redirect to the website/search page
+
+
+createSearchPage()
