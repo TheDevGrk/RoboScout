@@ -1,6 +1,5 @@
 import json
 import streamlit as st
-import data as dataModule
 
 st.set_page_config("Filter Results", initial_sidebar_state = "collapsed")
 

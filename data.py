@@ -359,13 +359,13 @@ def filterInputs(team, match):
             for i in n["teams"]:
                 inputs = {}
                 
-                inputs["Carried Status"] = {"type" : "selectbox", "options" : ["Neither team was carried.", "Yes, got carried.", "No, carried the other team."]}
+                inputs["Carried Status"] = {"type" : "selectbox", "options" : ["Neither team was carried.", "Yes, got carried.", "No, carried the other team."], "key" : i["team"]["name"]}
                 
-                inputs["Violations"] = {"type" : "selectbox", "options" : ["None", "Minor", "Major"]}
+                inputs["Violations"] = {"type" : "selectbox", "options" : ["None", "Minor", "Major"], "key" : i["team"]["name"]}
 
-                inputs["Driving Skills Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25}
+                inputs["Driving Skills Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : i["team"]["name"]}
                 
-                inputs["Autonomous Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25}
+                inputs["Autonomous Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : i["team"]["name"]}
 
                 addSection(i["team"]["name"], inputs)
 
