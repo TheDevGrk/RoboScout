@@ -330,13 +330,13 @@ def filterInputs(team, match):
             if str(i).startswith("Qualifier"):
                 inputs = {}
                 
-                inputs[f"Carried Status ({i})"] = {"type" : "selectbox", "options" : ["Neither team was carried.", "Yes, got carried.", "No, carried the other team."]}
+                inputs["Carried Status"] = {"type" : "selectbox", "options" : ["Neither team was carried.", "Yes, got carried.", "No, carried the other team."], "key" : i}
                 
-                inputs[f"Violations ({i})"] = {"type" : "selectbox", "options" : ["None", "Minor", "Major"]}
+                inputs["Violations"] = {"type" : "selectbox", "options" : ["None", "Minor", "Major"], "key" : i}
 
-                inputs[f"Driving Skills Rating ({i})"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25}
+                inputs["Driving Skills Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : i}
                 
-                inputs[f"Autonomous Rating ({i})"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25}
+                inputs["Autonomous Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : i}
 
                 addSection(i, inputs)
 
