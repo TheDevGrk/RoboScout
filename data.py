@@ -357,6 +357,8 @@ def filterInputs(team, match):
 
         for n in matchData["alliances"]:
             for i in n["teams"]:
+                color = n["color"]
+
                 inputs = {}
                 
                 inputs["Carried Status"] = {"type" : "selectbox", "options" : ["Neither team was carried.", "Yes, got carried.", "No, carried the other team."], "key" : i["team"]["name"]}
@@ -367,7 +369,7 @@ def filterInputs(team, match):
                 
                 inputs["Autonomous Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : i["team"]["name"]}
 
-                addSection(i["team"]["name"], inputs)
+                addSection(f":{color}[{i["team"]["name"]}]", inputs)
 
     
     with open("output.json", "w") as file:
