@@ -9,18 +9,28 @@ import data as dataModule
 st.set_page_config("Filter Results", initial_sidebar_state = "collapsed")
 
 def createSearchPage():
-    # st.switch_page("pages/searchResult.py")
     if "filterData" not in st.session_state:
         return
 
     data = st.session_state["filterData"]
-
-    # if data["popup"] != None:
-    #     st.switch_page("main.py")
-    #     # st.write(f":red[{data["popup"]}]")
-    #     return
     
     title = st.title(data["title"])
+
+    for i in data["sections"]:
+        heading = st.header(i["heading"])
+        
+        for n in i["inputs"]:
+            info = i["inputs"][n]
+            type = info["type"]
+
+            if type == "checkbox":
+                st.checkbox(n)
+
+            elif type == "selectbox":
+                st.selectbox(n, info["options"])
+
+            elif type == "slider":
+                st.slider(n, info["range"][0], info["range"][1], step = info["step"])
 
     # TODO 1st priority should be working on the page system (switching to page and then displaying on correct page), worry about page generation after
 
