@@ -3,7 +3,6 @@ import streamlit as st
 
 st.set_page_config("Filter Results", initial_sidebar_state = "collapsed")
 
-# TODO disable rest of auton fields if "No Auton" is selected in auto side select menu
 # TODO add "history" feature to save inputted data from previous competitions for future use
 # TODO add "crowdsourced" data when accounts are added and it is opened for public use
 # TODO change violations from drop down to a new section where you can press a button to add a violation
@@ -34,6 +33,7 @@ def disableAutonWidgets(key):
     saveValue(key)
 
 def saveValue(key):
+    # NOTE: have to truncate match part of key for violations when adding it to values so that it can be added to the list of violations for that team properly
     file = open("values.json", "r")
     data = json.loads(file.read())
     file.close()
@@ -104,9 +104,18 @@ def createSearchPage():
                 else:
                     st.selectbox(n, info["options"], key = key, disabled = disabled, on_change = lambda key = key : saveValue(key), index = value)
 
-
             elif type == "slider":
                 st.slider(n, info["range"][0], info["range"][1], step = info["step"], key = key, disabled = disabled, on_change = lambda key = key : saveValue(key), value = value)
+
+            elif type == "violationModule":
+                addViolation = st.button("Add a Violation", key = key)
+
+            if key.startswith("Violations") and st.session_state[key]:
+                with st.form("addViolation"):
+                    st.selectbox("Severity", ["Minor", "Major"], None)
+                    st.text_input("Violation Notes (Optional)", placeholder = "Type something")
+
+                    st.form_submit_button("Save Violation")
 
 homeButton = st.button("Home")
 

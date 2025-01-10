@@ -272,12 +272,12 @@ def filterInputs(team, match):
                     inputs = {}
                     
                     inputs["Carried Status"] = {"type" : "selectbox", "options" : ["Neither team was carried.", "Yes, got carried.", "No, carried the other team."], "key" : team + "-" + match}
-                    
-                    inputs["Violations"] = {"type" : "selectbox", "options" : ["None", "Minor", "Major"], "key" : team + "-" + match}
 
                     inputs["Driving Skills Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : team + "-" + match}
                     
                     inputs["Autonomous Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : team + "-" + match}
+
+                    inputs["Violations"] = {"type" : "violationModule", "key" : team + "-" + match}
 
 
                     addSection(match, inputs)
@@ -330,12 +330,12 @@ def filterInputs(team, match):
                 inputs = {}
                 
                 inputs["Carried Status"] = {"type" : "selectbox", "options" : ["Neither team was carried.", "Yes, got carried.", "No, carried the other team."], "key" : team + "-" + i}
-                
-                inputs["Violations"] = {"type" : "selectbox", "options" : ["None", "Minor", "Major"], "key" : team + "-" + i}
 
                 inputs["Driving Skills Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : team + "-" + i}
                 
                 inputs["Autonomous Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : team + "-" + i}
+
+                inputs["Violations"] = {"type" : "violationModule", "key" : team + "-" + i}
 
                 addSection(i, inputs)
 
@@ -362,13 +362,13 @@ def filterInputs(team, match):
                 
                 inputs["Carried Status"] = {"type" : "selectbox", "options" : ["Neither team was carried.", "Yes, got carried.", "No, carried the other team."], "key" : i["team"]["name"] + "-" + match}
                 
-                inputs["Violations"] = {"type" : "selectbox", "options" : ["None", "Minor", "Major"], "key" : i["team"]["name"] + "-" + match}
-
                 inputs["Driving Skills Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : i["team"]["name"] + "-" + match}
                 
                 inputs["Autonomous Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : i["team"]["name"] + "-" + match}
 
-                addSection(f":{color}[{i["team"]["name"]}]", inputs)
+                inputs["Violations"] = {"type" : "violationModule", "key" : team}
+
+                addSection(f":{color}[{i["team"]["name"]}]", i["team"]["name"] + "-" + match)
 
     
     with open("output.json", "w") as file:
