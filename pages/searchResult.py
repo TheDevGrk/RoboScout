@@ -4,6 +4,8 @@ import streamlit as st
 st.set_page_config("Filter Results", initial_sidebar_state = "collapsed")
 
 # TODO disable rest of auton fields if "No Auton" is selected in auto side select menu
+# TODO add "history" feature to save inputted data from previous competitions for future use
+# TODO add "crowdsourced" data when accounts are added and it is opened for public use
 
 if "disabled" not in st.session_state:
     st.session_state["disabled"] = False
@@ -40,6 +42,15 @@ def createSearchPage():
     data = st.session_state["filterData"]
     
     title = st.title(data["title"])
+    
+    file = open("values.json", "r")
+    valueData = json.loads(file.read())
+    file.close()
+
+    try:
+        st.session_state["disabled"] = valueData["Basic Bot-" + data["title"] + "-general"]
+    except:
+        st.session_state["disabled"] = False
 
     for i in data["sections"]:
         heading = st.header(i["heading"])
