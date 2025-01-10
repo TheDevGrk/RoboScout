@@ -6,9 +6,13 @@ st.set_page_config("Filter Results", initial_sidebar_state = "collapsed")
 # TODO disable rest of auton fields if "No Auton" is selected in auto side select menu
 # TODO add "history" feature to save inputted data from previous competitions for future use
 # TODO add "crowdsourced" data when accounts are added and it is opened for public use
+# TODO change violations from drop down to a new section where you can press a button to add a violation
 
 if "disabled" not in st.session_state:
     st.session_state["disabled"] = False
+
+if "autonDisabled" not in st.session_state:
+    st.session_state["autonDisabled"] = False
 
 def disableWidgets(key):
     disabled = st.session_state["disabled"]
@@ -16,6 +20,16 @@ def disableWidgets(key):
         st.session_state["disabled"] = False
     else:
         st.session_state["disabled"] = True
+
+    saveValue(key)
+
+def disableAutonWidgets(key):
+    autonDisabled = st.session_state["autonDisabled"]
+
+    if autonDisabled and not st.session_state[key] == "No Auton":
+        st.session_state["autonDisabled"] = False
+    elif st.session_state[key] == "No Auton":
+        st.session_state["autonDisabled"] = True
 
     saveValue(key)
 
@@ -30,8 +44,6 @@ def saveValue(key):
     file = open("values.json", "w")
     json.dump(data, file)
     file.close()
-
-    
     
 
 def createSearchPage():
@@ -62,6 +74,9 @@ def createSearchPage():
 
             key = n + "-" + info["key"]
 
+            if disabled == False and n.startswith("Autonomous") and not n == "Autonomous Side":
+                disabled = st.session_state["autonDisabled"]
+
             file = open("values.json", "r")
             data = json.loads(file.read())
             file.close()
@@ -83,8 +98,12 @@ def createSearchPage():
             elif type == "selectbox":
                 if value != None:
                     value = info["options"].index(value)
+                
+                if n == "Autonomous Side":
+                    st.selectbox(n, info["options"], key = key, disabled = disabled, on_change = lambda key = key : disableAutonWidgets(key), index = value)
+                else:
+                    st.selectbox(n, info["options"], key = key, disabled = disabled, on_change = lambda key = key : saveValue(key), index = value)
 
-                st.selectbox(n, info["options"], key = key, disabled = disabled, on_change = lambda key = key : saveValue(key), index = value)
 
             elif type == "slider":
                 st.slider(n, info["range"][0], info["range"][1], step = info["step"], key = key, disabled = disabled, on_change = lambda key = key : saveValue(key), value = value)
