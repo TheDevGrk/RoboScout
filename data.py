@@ -100,7 +100,7 @@ def fetchEventData(eventSku : str):
         matches = {}
 
         for n in matchesData:
-            if n["event"]["code"] == eventSku:
+            if n["event"]["code"] == eventSku and str(n["name"]).startswith("Qualifier"):
                 teams = {}
 
                 blue = n["alliances"][0]["teams"]
@@ -293,7 +293,7 @@ def filterInputs(team, match):
         # This should disable all the rest of the fields if it is checked since it is an auto deny
         inputs["Basic Bot"] = {"type" : "checkbox", "key" : team + "-general"}
 
-        inputs["Autonomous Side"] = {"type" : "selectbox", "options" : ["Left", "Right", "Ambidexterous"], "key" : team + "-general"}
+        inputs["Autonomous Side"] = {"type" : "selectbox", "options" : ["Left", "Right", "Ambidexterous", "No Auton"], "key" : team + "-general"}
         inputs["Autonomous Scoring Capabilities (Points)"] = {"type" : "slider", "range" : [0, 50], "step" : 1, "key" : team + "-general"}
         inputs["Autonomous Tasks Able to be Completed"] = {"type" : "multiselect", "options" : ["At least three rings scored", 
                                                                                                 "A minimum of two stakes with at least one ring scored",

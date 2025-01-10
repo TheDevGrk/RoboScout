@@ -6,8 +6,8 @@ import json
 import time
 import datetime
 import ast
-import pages.searchResult as searchResult
 
+st.set_page_config("Home")
 
 pool = ThreadPool(processes=2)
 
@@ -81,8 +81,8 @@ def refreshFilters():
 
     st.title("Filter Inputs")
 
-    team = st.selectbox("Filter by Team", ["Select a Team"] + teams)
-    match = st.selectbox("Filter by Match", ["Select a Match"] + st.session_state["matches"])
+    team = st.selectbox("Filter by Team", teams, index = None)
+    match = st.selectbox("Filter by Match", st.session_state["matches"], index = None)
 
     searchButton = st.button("Search")
 
