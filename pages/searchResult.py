@@ -45,6 +45,20 @@ def saveValue(key):
     json.dump(data, file)
     file.close()
     
+def saveViolation(key, match):
+    file = open("values.json", "r")
+    data = json.loads(file.read())
+    file.close()
+
+    severity = st.session_state[key + "-severity"]
+    notes = st.session_state[key + "-notes"]
+
+    data[key] = {"severity" : severity, "notes" : notes, "match" : match}
+
+    file = open("values.json", "w")
+    json.dump(data, file)
+    file.close()
+
 
 def createSearchPage():
     if "filterData" not in st.session_state:
@@ -108,14 +122,11 @@ def createSearchPage():
                 st.slider(n, info["range"][0], info["range"][1], step = info["step"], key = key, disabled = disabled, on_change = lambda key = key : saveValue(key), value = value)
 
             elif type == "violationModule":
-                addViolation = st.button("Add a Violation", key = key)
-
-            if key.startswith("Violations") and st.session_state[key]:
-                with st.form("addViolation"):
-                    st.selectbox("Severity", ["Minor", "Major"], None)
-                    st.text_input("Violation Notes (Optional)", placeholder = "Type something")
-
-                    st.form_submit_button("Save Violation")
+                addViolation = st.expander("Add a Violation")
+                
+                addViolation.selectbox("Severity", ["Minor", "Major"], None, key = key + "-severity")
+                addViolation.text_input("Violation Notes (Optional)", placeholder = "Type something", key = key + "-notes")
+                addViolation.button("Save Violation", key = key + "saveButton", on_click = lambda key = key, match = i["heading"] : saveViolation(key, match))
 
 homeButton = st.button("Home")
 
