@@ -45,7 +45,7 @@ def saveValue(key):
     json.dump(data, file)
     file.close()
     
-def saveViolation(key, match):
+def saveViolation(key: str, match: str):
     file = open("values.json", "r")
     data = json.loads(file.read())
     file.close()
@@ -53,7 +53,13 @@ def saveViolation(key, match):
     severity = st.session_state[key + "-severity"]
     notes = st.session_state[key + "-notes"]
 
-    data[key] = {"severity" : severity, "notes" : notes, "match" : match}
+    key = key[:key.find("-Qualifier")]
+
+    try:
+        data[key].append({"severity" : severity, "notes" : notes, "match" : match})
+    except:
+        data[key] = []
+        data[key].append({"severity" : severity, "notes" : notes, "match" : match})
 
     file = open("values.json", "w")
     json.dump(data, file)
