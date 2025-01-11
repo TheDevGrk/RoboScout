@@ -146,7 +146,22 @@ def createSearchPage():
             elif type == "violationModule":
                 addViolation = st.button("Add a Violation", on_click = lambda key = key: addViolationDialog(key), key = key, disabled = disabled)
             
-            saveValue(key)
+            if type != "violationModule":
+                saveValue(key)
+            else:
+                file = open("values.json", "r")
+                data = json.loads(file.read())
+                file.close()
+
+                key = key[:key.find("-Qualifier")]
+                try:
+                    data[key] = data[key]
+                except:
+                    data[key] = []
+
+                file = open("values.json", "w")
+                json.dump(data, file)
+                file.close()
                 
 
 homeButton = st.button("Home")
