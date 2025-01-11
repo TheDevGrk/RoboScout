@@ -68,11 +68,14 @@ def saveViolation(key: str):
 
 @st.dialog("Add A Violation")
 def addViolationDialog(key):
-    st.selectbox("Severity", ["Minor", "Major"], None, key = key + "-severity")
+    severity = st.selectbox("Severity", ["Minor", "Major"], None, key = key + "-severity")
     st.text_input("Violation Notes (Optional)", placeholder = "Type something", key = key + "-notes")
 
     if st.button("Save Violation", key = key + "saveButton", on_click = lambda key = key: saveViolation(key)):
-        st.rerun()
+        if severity == None:
+            st.write(":red[You must select a severity!]")
+        else:
+            st.rerun()
 
 def createSearchPage():
     if "filterData" not in st.session_state:
