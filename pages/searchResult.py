@@ -45,7 +45,7 @@ def saveValue(key):
     json.dump(data, file)
     file.close()
     
-def saveViolation(key: str, match: str):
+def saveViolation(key: str):
     file = open("values.json", "r")
     data = json.loads(file.read())
     file.close()
@@ -53,6 +53,7 @@ def saveViolation(key: str, match: str):
     severity = st.session_state[key + "-severity"]
     notes = st.session_state[key + "-notes"]
 
+    match = key[key.find("Qualifier"):]
     key = key[:key.find("-Qualifier")]
 
     try:
@@ -65,6 +66,13 @@ def saveViolation(key: str, match: str):
     json.dump(data, file)
     file.close()
 
+@st.dialog("Add A Violation")
+def addViolationDialog(key):
+    st.selectbox("Severity", ["Minor", "Major"], None, key = key + "-severity")
+    st.text_input("Violation Notes (Optional)", placeholder = "Type something", key = key + "-notes")
+
+    if st.button("Save Violation", key = key + "saveButton", on_click = lambda key = key: saveViolation(key)):
+        st.rerun()
 
 def createSearchPage():
     if "filterData" not in st.session_state:
@@ -128,11 +136,9 @@ def createSearchPage():
                 st.slider(n, info["range"][0], info["range"][1], step = info["step"], key = key, disabled = disabled, on_change = lambda key = key : saveValue(key), value = value)
 
             elif type == "violationModule":
-                addViolation = st.expander("Add a Violation")
+                addViolation = st.button("Add a Violation", on_click = lambda key = key: addViolationDialog(key), key = key)
                 
-                addViolation.selectbox("Severity", ["Minor", "Major"], None, key = key + "-severity")
-                addViolation.text_input("Violation Notes (Optional)", placeholder = "Type something", key = key + "-notes")
-                addViolation.button("Save Violation", key = key + "saveButton", on_click = lambda key = key, match = i["heading"] : saveViolation(key, match))
+                
 
 homeButton = st.button("Home")
 
