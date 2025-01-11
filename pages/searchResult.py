@@ -5,7 +5,6 @@ st.set_page_config("Filter Results", initial_sidebar_state = "collapsed")
 
 # TODO add "history" feature to save inputted data from previous competitions for future use
 # TODO add "crowdsourced" data when accounts are added and it is opened for public use
-# TODO change violations from drop down to a new section where you can press a button to add a violation
 
 if "disabled" not in st.session_state:
     st.session_state["disabled"] = False
@@ -138,9 +137,16 @@ def createSearchPage():
             elif type == "slider":
                 st.slider(n, info["range"][0], info["range"][1], step = info["step"], key = key, disabled = disabled, on_change = lambda key = key : saveValue(key), value = value)
 
+            elif type == "multiselect":
+                st.multiselect(n, info["options"], key = key, disabled = disabled, on_change = lambda key = key : saveValue(key), default = value)
+
+            elif type == "number_input":
+                st.number_input(n, info["range"][0], info["range"][1], value = value, key = key, disabled = disabled, on_change = lambda key = key : saveValue(key), step = info["step"])
+
             elif type == "violationModule":
-                addViolation = st.button("Add a Violation", on_click = lambda key = key: addViolationDialog(key), key = key)
-                
+                addViolation = st.button("Add a Violation", on_click = lambda key = key: addViolationDialog(key), key = key, disabled = disabled)
+            
+            saveValue(key)
                 
 
 homeButton = st.button("Home")
