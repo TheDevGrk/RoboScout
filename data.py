@@ -39,10 +39,12 @@ def getEventID(sku):
 
 def fetchEventData(eventSku : str):
     eventID = getEventID(eventSku)
+    print("Gathered eventID")
 
     teamsURL = f"https://www.robotevents.com/api/v2/events/{eventID}/teams"
 
     teamsData = getURL(teamsURL)
+    print("Gathered teamsData")
 
     time.sleep(1)
 
@@ -54,6 +56,7 @@ def fetchEventData(eventSku : str):
         for i in range(2, pageNum + 1):
             teamsData = teamsData + getURL(teamsURL + f"?page={i}")["data"]
 
+    print("Gathered teamsData pages")
     
     teamInfo = {}
 
@@ -82,8 +85,6 @@ def fetchEventData(eventSku : str):
                         driverSkills = n["score"]
 
         skills = {"auton" : autonSkills, "autonRank" : autonSkillsRank, "driver" : driverSkills, "driverRank" : driverSkillsRank}
-
-        print(i["number"])
 
         matchesURL = f"https://www.robotevents.com/api/v2/teams/{i["id"]}/matches?per_page=1000"
 
@@ -143,26 +144,29 @@ def fetchEventData(eventSku : str):
         teamInfo[i["number"]] = {"name" : i["team_name"], "organization" : i["organization"], "id" : i["id"],
                                     "skills" : skills, "matches" : matches}
         
+        print("Just finished", i["number"])
         time.sleep(3)
         
+    print("Rankings time!")
     rankingsURL = f"https://www.robotevents.com/api/v2/events/{eventID}/divisions/1/rankings?per_page=100"
 
     rankingsData = getURL(rankingsURL)["data"]
 
     rank = 1
-    results = {}
 
     for i in rankingsData:
-            rank = i["rank"]
-            results["wins"] = i["wins"]
-            results["losses"] = i["losses"]
-            results["ties"] = i["ties"]
+        results = {}
+        
+        rank = i["rank"]
+        results["wins"] = i["wins"]
+        results["losses"] = i["losses"]
+        results["ties"] = i["ties"]
 
-            info = teamInfo[i["team"]["name"]]
-            info["rank"] = rank
-            info["results"] = results
+        info = teamInfo[i["team"]["name"]]
+        info["rank"] = rank
+        info["results"] = results
 
-            teamInfo[i["team"]["name"]] = info
+        teamInfo[i["team"]["name"]] = info
 
     matchURL = f"https://www.robotevents.com/api/v2/events/{eventID}/divisions/1/matches?per_page=100"
 
@@ -240,11 +244,6 @@ def filterInputs(team, match):
     file = open("teamInfo.json", "r")
     teamInfo = json.load(file)
     file.close()
-
-    if team == "Select a Team":
-        team = None
-    if match == "Select a Match":
-        match = None
     
     if match == None and team == None:
         output["popup"] = "You must choose some filters!"
@@ -285,13 +284,15 @@ def filterInputs(team, match):
 
                 break
 
-    elif team != None and match == None:
+    elif match == None:
         output["title"] = team
 
         inputs = {}
         
         # This should disable all the rest of the fields if it is checked since it is an auto deny
         inputs["Basic Bot"] = {"type" : "checkbox", "key" : team + "-general"}
+
+        inputs["State Qualified"] = {"type" : "checkbox", "key" : team + "-general"}
 
         inputs["Autonomous Side"] = {"type" : "selectbox", "options" : ["Left", "Right", "Ambidexterous", "No Auton"], "key" : team + "-general"}
         inputs["Autonomous Scoring Capabilities (Points)"] = {"type" : "slider", "range" : [0, 50], "step" : 1, "key" : team + "-general"}
@@ -340,7 +341,7 @@ def filterInputs(team, match):
                 addSection(i, inputs)
 
 
-    elif team == None and match != None:
+    elif team == None:
         eventID = getEventID(eventSku)
         matchURL = f"https://www.robotevents.com/api/v2/events/{eventID}/divisions/1/matches?per_page=250"
 
@@ -366,9 +367,9 @@ def filterInputs(team, match):
                 
                 inputs["Autonomous Rating"] = {"type" : "slider", "range": [0.0, 10.0], "step" : 0.25, "key" : i["team"]["name"] + "-" + match}
 
-                inputs["Violations"] = {"type" : "violationModule", "key" : team}
+                inputs["Violations"] = {"type" : "violationModule", "key" : i["team"]["name"] + "-" + match}
 
-                addSection(f":{color}[{i["team"]["name"]}]", i["team"]["name"] + "-" + match)
+                addSection(f":{color}[{i["team"]["name"]}]", inputs)
 
     
     with open("output.json", "w") as file:
