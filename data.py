@@ -390,11 +390,8 @@ def calculateResults():
 
     results = {}
 
-    # check that values aren't the defaults (like 0 for sliders) before adding them to the score
-
-    # TODO add DQ for not enough inputs being non zero / non None (this is already taken care of scoring wise, just needs to be taken care of DQ/warning wise)
-
     for team in autoData:
+        teamResult = {}
         score = 0
         possibleScore = 0
         disqualified = False
@@ -429,24 +426,26 @@ def calculateResults():
             if matchesWithData < math.floor(len(autoData[team]["matches"])):
                 disqualified = True
                 matchesDataTest = False
-                dqReason = "Not Enough Data"
+                dqReason = "Not Enough Data Provided"
                 dqStates.append("No Matches")
             if generalDataTest == False:
                 disqualified = True
-                dqReason = "Not Enough Data"
+                dqReason = "Not Enough Data Provided"
                 dqStates.append("No General")
 
 
         if "No General" not in dqStates:
             if manData["Basic Bot" + generalTag]:
                 disqualified = True
-                dqReason = "Basic Bot"
+                dqReason = "Having a \"Basic Bot\""
+            teamResult["Basic Bot"] = manData["Basic Bot" + generalTag]
 
 
             possibleScore += 15
             if manData["State Qualified" + generalTag]:
                 score += 15
-
+            teamResult["State Qualified"] = manData["State Qualified" + generalTag]
+# TODO keep adding all of these to the results dict so that they can be displayed on results page (might have to rework how results is defined below)
 
             if manData["Autonomous Side" + generalTag] != None:
                 possibleScore += 5
@@ -461,6 +460,7 @@ def calculateResults():
                     score -= 5
                 case "Ambidexterous":
                     score += 5
+            
 
             if manData["Autonomous Scoring Capabilities (Points)" + generalTag] != 0:
                 possibleScore += 4
@@ -694,13 +694,13 @@ def calculateResults():
 
         if insufficientData >= 4:
             disqualified = True
-            dqReason = "Not Enough General Data"
+            dqReason = "Not Enough General Data Providing"
         elif insufficientMatchData >= 13:
             disqualified = True
-            dqReason = "Not Enough Match Data"
+            dqReason = "Not Enough Match Data Provided"
         elif percentage < 0:
             disqualified = True
-            dqReason = "This team received a negative scoring percentage"
+            dqReason = "Receiving a negative scoring percentage"
 
         if possibleScore == 1:
             possibleScore = 0

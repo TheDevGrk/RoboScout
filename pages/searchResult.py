@@ -6,6 +6,7 @@ st.set_page_config("Filter Results", initial_sidebar_state = "collapsed")
 # TODO add "history" feature to save inputted data from previous competitions for future use
 # TODO add "crowdsourced" data when accounts are added and it is opened for public use
 
+
 if "disabled" not in st.session_state:
     st.session_state["disabled"] = False
 

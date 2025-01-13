@@ -6,9 +6,12 @@ import json
 import time
 import datetime
 import ast
-from streamlit_navigation_bar import st_navbar
 
 st.set_page_config("Home")
+
+display = st.button("Display Results")
+if display:
+    st.switch_page("pages/results.py")
 
 pool = ThreadPool(processes=2)
 
@@ -100,8 +103,6 @@ def refreshFilters():
 
 refreshInfo()
 refreshFilters()
-
-st.button("test calculations", on_click = data.calculateResults)
 
 # startDate = st.date_input("Filter by start date", datetime.date(2020, 1, 1))
 # endDate = st.date_input("Filter by end date")
