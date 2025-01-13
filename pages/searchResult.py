@@ -114,7 +114,10 @@ def createSearchPage():
             try:
                 value = data[key]
             except:
-                value = None
+                if type == "number_input":
+                    value = 0
+                else:
+                    value = None
 
             if type == "checkbox":
                 if value == None:

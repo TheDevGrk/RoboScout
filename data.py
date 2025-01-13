@@ -4,6 +4,7 @@ import time
 import json
 import datetime
 import requests
+import math
 
 load_dotenv()
 
@@ -61,7 +62,7 @@ def fetchEventData(eventSku : str):
     teamInfo = {}
 
     for i in teamsData:
-        skillsURL = f"https://www.robotevents.com/api/v2/teams/{i["id"]}/skills?per_page=500"
+        skillsURL = f"https://www.robotevents.com/api/v2/teams/{i["id"]}/skills?per_page=250"
 
         skillsData = getURL(skillsURL)["data"]
 
@@ -86,7 +87,7 @@ def fetchEventData(eventSku : str):
 
         skills = {"auton" : autonSkills, "autonRank" : autonSkillsRank, "driver" : driverSkills, "driverRank" : driverSkillsRank}
 
-        matchesURL = f"https://www.robotevents.com/api/v2/teams/{i["id"]}/matches?per_page=1000"
+        matchesURL = f"https://www.robotevents.com/api/v2/teams/{i["id"]}/matches?per_page=250"
 
         matchesData = getURL(matchesURL)
 
@@ -96,7 +97,7 @@ def fetchEventData(eventSku : str):
 
         if pageNum > 1:
             for n in range(2, pageNum + 1):
-                matchesData = matchesData + getURL(matchesURL + f"?page={n}")["data"]
+                matchesData = matchesData + getURL(matchesURL + f"&page={n}")["data"]
 
         matches = {}
 
@@ -148,7 +149,7 @@ def fetchEventData(eventSku : str):
         time.sleep(3)
         
     print("Rankings time!")
-    rankingsURL = f"https://www.robotevents.com/api/v2/events/{eventID}/divisions/1/rankings?per_page=100"
+    rankingsURL = f"https://www.robotevents.com/api/v2/events/{eventID}/divisions/1/rankings?per_page=250"
 
     rankingsData = getURL(rankingsURL)["data"]
 
@@ -168,7 +169,7 @@ def fetchEventData(eventSku : str):
 
         teamInfo[i["team"]["name"]] = info
 
-    matchURL = f"https://www.robotevents.com/api/v2/events/{eventID}/divisions/1/matches?per_page=100"
+    matchURL = f"https://www.robotevents.com/api/v2/events/{eventID}/divisions/1/matches?per_page=250"
 
     matchData = getURL(matchURL)["data"]
 
@@ -295,7 +296,7 @@ def filterInputs(team, match):
         inputs["State Qualified"] = {"type" : "checkbox", "key" : team + "-general"}
 
         inputs["Autonomous Side"] = {"type" : "selectbox", "options" : ["Left", "Right", "Ambidexterous", "No Auton"], "key" : team + "-general"}
-        inputs["Autonomous Scoring Capabilities (Points)"] = {"type" : "slider", "range" : [0, 50], "step" : 1, "key" : team + "-general"}
+        inputs["Autonomous Scoring Capabilities (Points)"] = {"type" : "slider", "range" : [0, 25], "step" : 1, "key" : team + "-general"}
         inputs["Autonomous Tasks Able to be Completed"] = {"type" : "multiselect", "options" : ["At least three rings scored", 
                                                                                                 "A minimum of two stakes with at least one ring scored",
                                                                                                  "Not contacting or breaking the plane of the Starting Line",
@@ -374,5 +375,337 @@ def filterInputs(team, match):
     
     with open("output.json", "w") as file:
         json.dump(output, file)
+        file.close()
 
     return output
+
+def calculateResults():
+    file = open("teamInfo.json", "r")
+    autoData = json.loads(file.read())
+    file.close()
+
+    file = open("values.json", "r")
+    manData = json.loads(file.read())
+    file.close()
+
+    results = {}
+
+    # check that values aren't the defaults (like 0 for sliders) before adding them to the score
+
+    # TODO add DQ for not enough inputs being non zero / non None (this is already taken care of scoring wise, just needs to be taken care of DQ/warning wise)
+
+    for team in autoData:
+        score = 0
+        possibleScore = 0
+        disqualified = False
+        dqReason = "Not Disqualified"
+        dqStates = []
+        insufficientData = 0
+        insufficientMatchData = 0
+
+        generalTag = "-" + team + "-general"
+
+        lastMatches = []
+
+        matchesLen = len(autoData[team]["matches"])
+        matchesLooped = 0
+        for i in autoData[team]["matches"]:
+            matchesLooped += 1
+
+            if matchesLooped > matchesLen - 2:
+                lastMatches.append(i)
+        
+
+        matchesWithData = 0
+        generalDataTest = False
+        matchesDataTest = True
+        try:
+            test = manData["Basic Bot" + generalTag]
+            generalDataTest = True
+            for match in autoData[team]["matches"]:
+                test = manData["Driving Skills Rating-" + team + "-" + match]
+                matchesWithData += 1
+        except:
+            if matchesWithData < math.floor(len(autoData[team]["matches"])):
+                disqualified = True
+                matchesDataTest = False
+                dqReason = "Not Enough Data"
+                dqStates.append("No Matches")
+            if generalDataTest == False:
+                disqualified = True
+                dqReason = "Not Enough Data"
+                dqStates.append("No General")
+
+
+        if "No General" not in dqStates:
+            if manData["Basic Bot" + generalTag]:
+                disqualified = True
+                dqReason = "Basic Bot"
+
+
+            possibleScore += 15
+            if manData["State Qualified" + generalTag]:
+                score += 15
+
+
+            if manData["Autonomous Side" + generalTag] != None:
+                possibleScore += 5
+            else:
+                insufficientData += 1
+            match manData["Autonomous Side" + generalTag]:
+                case "Right":
+                    score += 3
+                case "Left":
+                    score += 3
+                case "No Auton":
+                    score -= 5
+                case "Ambidexterous":
+                    score += 5
+
+            if manData["Autonomous Scoring Capabilities (Points)" + generalTag] != 0:
+                possibleScore += 4
+                score += math.floor(manData["Autonomous Scoring Capabilities (Points)" + generalTag] / 3)
+            else:
+                insufficientData += 1
+            
+
+            tasks = manData["Autonomous Tasks Able to be Completed" + generalTag]
+            possibleScore += 6
+            if "At least three rings scored" in tasks:
+                score += 2
+            if "A minimum of two stakes with at least one ring scored" in tasks:
+                score += 3
+            if "Not contacting or breaking the plane of the Starting line" not in tasks:
+                score -= 4
+            if "Contacting the ladder" in tasks:
+                score += 1
+
+            possibleScore += 1
+            if manData["Can Score on Wall Stakes" + generalTag]:
+                score += 1
+            if manData["Can Score on High Stake" + generalTag]:
+                score -= 1
+
+
+            possibleScore += 2
+            match manData["Elevation Level" + generalTag]:
+                case 1:
+                    score += 1
+                case 2:
+                    score += 2
+                case 3:
+                    score += 1
+            
+
+            
+            successRate = manData["Scoring Success Rate (%)" + generalTag]
+            if successRate != 0:
+                possibleScore += 6
+            else:
+                insufficientData += 1
+            if 0 < successRate <= 25:
+                score -= 10
+            elif 25 < successRate <= 50:
+                score -= 5
+            elif 75 < successRate <= 90:
+                score += 3
+            elif successRate > 90:
+                score += 6
+
+
+            speed = manData["Robot Speed (RPM)" + generalTag]
+            if speed != 0:
+                possibleScore += 9
+            else:
+                insufficientData += 1
+            if 0 < speed <= 100:
+                score -= 8
+            elif 100 < speed <= 200:
+                score -= 4
+            elif 200 < speed <= 300:
+                score += 1
+            elif 300 < speed <= 400:
+                score += 2
+            elif 400 < speed <= 500:
+                score += 5
+            elif 500 < speed <= 600:
+                score += 7
+            elif speed > 600:
+                score += 9
+
+
+            gripStrength = manData["Mobile Goal Moving Capabilities (Grip Strength)" + generalTag]
+            if gripStrength != 0:
+                possibleScore += 3
+            else:
+                insufficientData += 1
+            if 0 < gripStrength <= 5:
+                score -= 3
+            elif 5 < gripStrength <= 7:
+                score += 1
+            elif gripStrength > 8:
+                score += 3
+
+
+            weight = manData["Potential to be Bullied (Estimated Weight in Pounds)" + generalTag]
+            if weight != 0:
+                possibleScore += 6
+            else:
+                insufficientData += 1
+            if 0 < weight <= 5:
+                score -= 10
+            elif 15 < weight <= 20:
+                score += 3
+            elif weight > 20:
+                score += 6
+
+
+            if manData["Drivetrain Wheel Composition" + generalTag] != None:
+                possibleScore += 3
+            else:
+                insufficientData += 1
+            match manData["Drivetrain Wheel Composition" + generalTag]:
+                case "All Omniwheels":
+                    score -= 5
+                case "Partially Omniwheels":
+                    score += 3
+                case "No Omniwheels":
+                    score -= 2
+
+
+        if "No Matches" not in dqStates:
+            if (0 < manData["Driving Skills Rating-" + team + "-" + lastMatches[0]] <= 2 or
+                0 < manData["Driving Skills Rating-" + team + "-" + lastMatches[1]] <= 2) or (
+                0 < manData["Autonomous Rating-" + team + "-" + lastMatches[0]] <= 2 or
+                0 < manData["Autonomous Rating-" + team + "-" + lastMatches[1]] <= 2):
+                disqualified = True
+                dqReason = "Driving Skills / Autonomous Rating is too low"
+
+
+            for i in autoData[team]["matches"]:
+                matchTag = "-" + team + "-" + i
+                matchData = autoData[team]["matches"][i]
+
+                carriedStatus = manData["Carried Status" + matchTag]
+                driveSkill = manData["Driving Skills Rating" + matchTag]
+                autonRating = manData["Autonomous Rating" + matchTag]
+
+                if carriedStatus == None and driveSkill == 0 and autonRating == 0:
+                    insufficientMatchData += 3
+                    continue
+
+                # maybe change how this is scored depending on whether they won or lost
+                if carriedStatus != None:
+                    possibleScore += 4
+                else:
+                    insufficientMatchData += 1
+                match carriedStatus:
+                    case "Neither team was carried.":
+                        score += 1
+                    case "Yes, got carried.":
+                        score -= 6
+                    case "No, carried the other team.":
+                        score += 4
+
+
+                if driveSkill != 0:
+                    possibleScore += 9
+                else:
+                    insufficientMatchData += 1
+                if 0 < driveSkill <= 2:
+                    score -= 5
+                elif 2 < driveSkill <= 5:
+                    score -= 6 - driveSkill
+                elif 5 < driveSkill < 7:
+                    score += 1
+                elif 7 <= driveSkill < 9:
+                    score += 3
+                elif 9 <= driveSkill < 10:
+                    score += 6
+                elif driveSkill == 10:
+                    score += 9
+
+
+                if autonRating != 0:
+                    possibleScore += 4
+                else:
+                    insufficientMatchData += 1
+                if 0 < autonRating <= 2:
+                    score -= 5
+                elif 2 < autonRating <= 5:
+                    score -= -1
+                elif 5 < autonRating < 7:
+                    score += 1
+                elif 7 <= autonRating < 9:
+                    score += 2
+                elif 9 <= autonRating < 10:
+                    score += 3
+                elif autonRating == 10:
+                    score += 4
+
+
+                teamScore = matchData["teams"]["alliance"][3]
+                opponentScore = matchData["teams"]["opponents"][3]
+                possibleScore += 3
+                if teamScore > 16:
+                    score += math.ceil((teamScore - 16) / 8)
+                
+                possibleScore += 5
+                if opponentScore < 15 and teamScore >= 15:
+                    score += 5
+                elif opponentScore >= 15 and teamScore >= 15:
+                    score += math.floor(teamScore / (opponentScore * 1.25))
+                elif teamScore < 15 and opponentScore >= 15:
+                    score -= 5
+                
+                possibleScore += 5
+                match matchData["result"]:
+                    case "Win":
+                        score += 5
+                    case "Loss":
+                        score -= 5
+            
+
+        if "No General" not in dqStates and "No Matches" not in dqStates:
+            for i in manData["Violations-" + team]:
+                match i["severity"]:
+                    case "Minor":
+                        score -= 5
+                    case "Major":
+                        score -= 15
+
+            possibleScore += 4
+            if autoData[team]["results"]["losses"] == 0:
+                score += math.ceil(autoData[team]["results"]["wins"] / 2)
+            else:
+                score += math.ceil(autoData[team]["results"]["wins"] / (autoData[team]["results"]["losses"] * 2))
+
+            score -= math.floor(autoData[team]["rank"] / 2)
+
+            possibleScore += 14
+            score += math.ceil(autoData[team]["skills"]["auton"] / 6)
+            score -= math.floor(autoData[team]["skills"]["autonRank"] / 6)
+            score += math.ceil(autoData[team]["skills"]["driver"] / 6)
+            score -= math.floor(autoData[team]["skills"]["driverRank"] / 6)
+        
+        if possibleScore == 0:
+            possibleScore = 1
+        percentage = round((score / possibleScore) * 100, 2)
+
+        if insufficientData >= 4:
+            disqualified = True
+            dqReason = "Not Enough General Data"
+        elif insufficientMatchData >= 13:
+            disqualified = True
+            dqReason = "Not Enough Match Data"
+        elif percentage < 0:
+            disqualified = True
+            dqReason = "This team received a negative scoring percentage"
+
+        if possibleScore == 1:
+            possibleScore = 0
+        results[team] = {"score" : score, "possible" : possibleScore, "disqualified" : disqualified, "dqReason" : dqReason, "percentage" : percentage}
+
+    file = open("results.json", "w")
+    json.dump(results, file)
+    file.close()

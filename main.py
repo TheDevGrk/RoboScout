@@ -6,6 +6,7 @@ import json
 import time
 import datetime
 import ast
+from streamlit_navigation_bar import st_navbar
 
 st.set_page_config("Home")
 
@@ -56,6 +57,7 @@ validCharacters = [
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 # pool.apply_async(data.refreshData)
+ 
 
 @st.fragment(run_every="25s")
 def refreshInfo():
@@ -98,6 +100,8 @@ def refreshFilters():
 
 refreshInfo()
 refreshFilters()
+
+st.button("test calculations", on_click = data.calculateResults)
 
 # startDate = st.date_input("Filter by start date", datetime.date(2020, 1, 1))
 # endDate = st.date_input("Filter by end date")
