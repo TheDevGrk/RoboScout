@@ -433,6 +433,19 @@ def calculateResults():
                 dqReason = "Not Enough Data Provided"
                 dqStates.append("No General")
 
+        teamResult["Basic Bot"] = "Data Not Provided"
+        teamResult["State Qualified"] = "Data Not Provided"
+        teamResult["Autonomous Side"] = "Data Not Provided"
+        teamResult["Autonomous Scoring Capabilities (Points)"] = "Data Not Provided"
+        teamResult["Autonomous Tasks Able to be Completed"] = "Data Not Provided"
+        teamResult["Can Score on Wall Stakes"] = "Data Not Provided"
+        teamResult["Can Score on High Stake"] = "Data Not Provided"
+        teamResult["Elevation Level"] = "Data Not Provided"
+        teamResult["Scoring Success Rate (%)"] = "Data Not Provided"
+        teamResult["Robo Speed (RPM)"] = "Data Not Provided"
+        teamResult["Mobile Goal Moving Capabilities (Grip Strength)"] = "Data Not Provided"
+        teamResult["Potential to be Bullied (Estimated Weight in Pounds)"] = "Data Not Provided"
+        teamResult["Drivetrain Wheel Composition"] = "Data Not Provided"
 
         if "No General" not in dqStates:
             if manData["Basic Bot" + generalTag]:
@@ -445,7 +458,7 @@ def calculateResults():
             if manData["State Qualified" + generalTag]:
                 score += 15
             teamResult["State Qualified"] = manData["State Qualified" + generalTag]
-# TODO keep adding all of these to the results dict so that they can be displayed on results page (might have to rework how results is defined below)
+
 
 
             if manData["Autonomous Side" + generalTag] != None:
@@ -490,6 +503,7 @@ def calculateResults():
                 score += 1
             if manData["Can Score on High Stake" + generalTag]:
                 score -= 1
+            teamResult["Can Score on Wall Stakes"] = manData["Can Score on Wall Stakes" + generalTag]
             teamResult["Can Score on High Stake"] = manData["Can Score on High Stake" + generalTag]
 
 
@@ -691,28 +705,30 @@ def calculateResults():
                     case "Major":
                         score -= 15
 
-            possibleScore += 4
-            if autoData[team]["results"]["losses"] == 0:
-                winLossRatio =  math.ceil(autoData[team]["results"]["wins"] / 2)
-                score += winLossRatio
-            else:
-                winLossRatio = math.ceil(autoData[team]["results"]["wins"] / (autoData[team]["results"]["losses"] * 2))
-                score += winLossRatio
 
-            score -= math.floor(autoData[team]["rank"] / 2)
+        score -= math.floor(autoData[team]["rank"] / 2)
 
-            possibleScore += 14
-            score += math.ceil(autoData[team]["skills"]["auton"] / 6)
-            score -= math.floor(autoData[team]["skills"]["autonRank"] / 6)
-            score += math.ceil(autoData[team]["skills"]["driver"] / 6)
-            score -= math.floor(autoData[team]["skills"]["driverRank"] / 6)
+        possibleScore += 14
+        score += math.ceil(autoData[team]["skills"]["auton"] / 6)
+        score -= math.floor(autoData[team]["skills"]["autonRank"] / 6)
+        score += math.ceil(autoData[team]["skills"]["driver"] / 6)
+        score -= math.floor(autoData[team]["skills"]["driverRank"] / 6)
 
-            teamResult["W/L Ratio"] = winLossRatio
-            teamResult["Best Autonomous Skills Run Score"] = autoData[team]["skills"]["auton"]
-            teamResult["Best Driver Skills Run Score"] = autoData[team]["skills"]["driver"]
-            teamResult["Autonomous Skills Rank"] = autoData[team]["skills"]["autonRank"]
-            teamResult["Driver Skills Rank"] = autoData[team]["skills"]["driverRank"]
+        teamResult["Best Autonomous Skills Run Score"] = autoData[team]["skills"]["auton"]
+        teamResult["Best Driver Skills Run Score"] = autoData[team]["skills"]["driver"]
+        teamResult["Autonomous Skills Rank"] = autoData[team]["skills"]["autonRank"]
+        teamResult["Driver Skills Rank"] = autoData[team]["skills"]["driverRank"]
         
+        possibleScore += 4
+        if autoData[team]["results"]["losses"] == 0:
+            winLossRatio =  math.ceil(autoData[team]["results"]["wins"] / 2)
+            score += winLossRatio
+        else:
+            winLossRatio = math.ceil(autoData[team]["results"]["wins"] / (autoData[team]["results"]["losses"] * 2))
+            score += winLossRatio
+        teamResult["W/L Ratio"] = winLossRatio
+        
+
         if possibleScore == 0:
             possibleScore = 1
         percentage = round((score / possibleScore) * 100, 2)
