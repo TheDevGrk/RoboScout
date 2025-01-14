@@ -203,14 +203,14 @@ def findTeam(number : str):
     returnValue = {}
     findTeamURL = f"https://www.robotevents.com/api/v2/teams?number%5B%5D={number}"
 
-    teamData = getURL(findTeamURL)["data"]
+    teamData = getURL(findTeamURL)["data"][0]
 
     if teamData != []:
         returnValue = {"id" : teamData["id"], "number" : teamData["number"], "name" : teamData["team_name"], "organization" : teamData["organization"]}
     else:
         returnValue = None
 
-        return returnValue
+    return returnValue
 
 def findEvents(startDate : datetime.date = datetime.date(2020, 1, 1),
                 endDate : datetime.date = datetime.date.today(),
@@ -228,9 +228,17 @@ def findEvents(startDate : datetime.date = datetime.date(2020, 1, 1),
 
     if teamNumber != "N/A":
         teamData = findTeam(teamNumber)
-        findEventsURL = findEventsURL + f"team%5B%5D={teamData["id"]}"
+        if teamData != None:
+            findEventsURL = findEventsURL + f"&team%5B%5D={teamData["id"]}"
 
-        eventData = getURL(findEventsURL)["data"]   
+    eventData = getURL(findEventsURL)["data"]   
+    events = []
+    for i in eventData:
+        events.append({"name" : f"{i["name"]} - {i["start"][:10]}", "sku" : i["sku"]})
+
+    return events
+
+        
 
 def filterInputs(team, match):
     output = {"popup" : None, "title" : None, "sections" : []}

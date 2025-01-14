@@ -1,17 +1,19 @@
 from multiprocessing.pool import ThreadPool
 import data
 import streamlit as st
-import streamlit_modal as modal
 import json
-import time
 import datetime
 import ast
+import extra_streamlit_components as stx
 
-st.set_page_config("Home")
+st.set_page_config("Find an Event")
 
-display = st.button("Display Results")
-if display:
-    st.switch_page("pages/results.py")
+with st.empty():
+    @st.cache_resource
+    def getManager():
+        return stx.CookieManager()
+
+    cookieManager = getManager()
 
 pool = ThreadPool(processes=2)
 
@@ -60,7 +62,41 @@ validCharacters = [
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 # pool.apply_async(data.refreshData)
- 
+eventNames = []
+@st.fragment()
+def findEvents():
+    startDate = st.date_input("Filter by start date", datetime.date(2020, 1, 1))
+    endDate = st.date_input("Filter by end date")
+
+    country = st.selectbox("Filter by Country", countries, index = countries.index("United States"), placeholder = "Choose a Country")
+    state = st.selectbox("Filter by State (US Only)", ["N/A"] + states, placeholder = "Choose a State")
+
+    teamFilter = st.text_input("Filter by Team Number (Optional)", value = "N/A", placeholder = "Type a team number (Ex. 123A)")
+
+    if teamFilter != "N/A":
+        for i in teamFilter:
+            if i not in validCharacters:
+                teamFilter = teamFilter.replace(i, "")
+
+    if teamFilter == "":
+        teamFilter = "N/A"
+
+    searchButton = st.button("Find Events")
+
+    events = data.findEvents(startDate, endDate, country, state, teamFilter)
+    if searchButton:
+        events = data.findEvents(startDate, endDate, country, state, teamFilter)
+        for i in events:
+            eventNames.append(i["name"])
+
+    eventList = st.selectbox("Choose an Event", eventNames)
+    eventSubmit = st.button("Select Chosen Event")
+    if eventSubmit:
+        if eventNames == []:
+            st.write(":red[You must first Find Events!]")
+        else:
+            cookieManager.set("eventSku", events[eventNames.index(eventList)]["sku"])
+            st.switch_page("pages/search.py")
 
 @st.fragment(run_every="25s")
 def refreshInfo():
@@ -75,50 +111,6 @@ def refreshInfo():
     st.session_state["teamInfo"] = teamInfo
     st.session_state["matches"] = ast.literal_eval(matches)
 
-def searchEvents(startDate, endDate, country, state, teamNumber):
-    pool.apply_async(data.findEvents, (startDate, endDate, country, state, teamNumber))
-
-@st.fragment(run_every = "25s")
-def refreshFilters():
-    teams = []
-    for i in st.session_state["teamInfo"]:
-        teams.append(i)
-
-    st.title("Filter Inputs")
-
-    team = st.selectbox("Filter by Team", teams, index = None)
-    match = st.selectbox("Filter by Match", st.session_state["matches"], index = None)
-
-    searchButton = st.button("Search")
-
-    if searchButton:
-        filterData = data.filterInputs(team, match)
-
-        if filterData["popup"] != None:
-            st.write(f":red[{filterData["popup"]}]")
-
-        else:
-            st.session_state["filterData"] = filterData
-            st.switch_page("pages/searchResult.py")
 
 refreshInfo()
-refreshFilters()
-
-# startDate = st.date_input("Filter by start date", datetime.date(2020, 1, 1))
-# endDate = st.date_input("Filter by end date")
-
-# country = st.selectbox("Filter by Country", countries, index = countries.index("United States"), placeholder = "Choose a Country")
-# state = st.selectbox("Filter by State (US Only)", ["N/A"] + states, placeholder = "Choose a State")
-
-# teamFilter = st.text_input("Filter by Team Number (Optional)", value = "N/A", placeholder = "Type a team number (Ex. 123A)")
-
-# for i in teamFilter:
-#     if i not in validCharacters:
-#         teamFilter = teamFilter.replace(i, "")
-
-# if teamFilter == "":
-#     teamFilter = "N/A"
-
-# st.selectbox("Event", ["Test1", "Test2"])
-
-# searchButton = st.button("Find Events", on_click = search, args = (startDate, endDate, country, state, teamFilter))
+findEvents()
