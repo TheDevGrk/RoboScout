@@ -2,9 +2,13 @@ import streamlit as st
 import data as dataModule
 import json
 
-st.set_page_config("Display Results")\
+st.set_page_config("Display Results")
 
 st.title("Results")
+homeButton = st.button("Home")
+
+if homeButton:
+    st.switch_page("main.py")
 st.warning("All results were calculated based off of values that were either manually inputted or automatically gathered from the robotevents.com API.  These rankings should not be used as the only metric for determining which teams you choose to form an alliance with during elimination rounds, as the values are subjective and are based on unofficial calculations.")
 
 dataModule.calculateResults()
@@ -40,6 +44,7 @@ for i in ranks:
     if data[i]["disqualified"]:
         teamResult.warning("This team was \"disqualified\" from the rankings for: " + data[i]["dqReason"])
 
+    
     
     
 
