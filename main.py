@@ -1,21 +1,10 @@
-from multiprocessing.pool import ThreadPool
-import data
 import streamlit as st
-import json
-import datetime
-import ast
-import extra_streamlit_components as stx
+import dotenv
 
 st.set_page_config("Find an Event")
+dotenv.load_dotenv()
 
-with st.empty():
-    @st.cache_resource
-    def getManager():
-        return stx.CookieManager()
 
-    cookieManager = getManager()
-
-pool = ThreadPool(processes=2)
 
 states = [
     "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", 
@@ -61,56 +50,48 @@ validCharacters = [
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
-# pool.apply_async(data.refreshData)
-eventNames = []
-@st.fragment()
-def findEvents():
-    startDate = st.date_input("Filter by start date", datetime.date(2020, 1, 1))
-    endDate = st.date_input("Filter by end date")
+# eventNames = []
+# @st.fragment()
+# def findEvents():
+#     startDate = st.date_input("Filter by start date", datetime.date(2020, 1, 1))
+#     endDate = st.date_input("Filter by end date")
 
-    country = st.selectbox("Filter by Country", countries, index = countries.index("United States"), placeholder = "Choose a Country")
-    state = st.selectbox("Filter by State (US Only)", ["N/A"] + states, placeholder = "Choose a State")
+#     country = st.selectbox("Filter by Country", countries, index = countries.index("United States"), placeholder = "Choose a Country")
+#     state = st.selectbox("Filter by State (US Only)", ["N/A"] + states, placeholder = "Choose a State")
 
-    teamFilter = st.text_input("Filter by Team Number (Optional)", value = "N/A", placeholder = "Type a team number (Ex. 123A)")
+#     teamFilter = st.text_input("Filter by Team Number (Optional)", value = "N/A", placeholder = "Type a team number (Ex. 123A)")
 
-    if teamFilter != "N/A":
-        for i in teamFilter:
-            if i not in validCharacters:
-                teamFilter = teamFilter.replace(i, "")
+#     if teamFilter != "N/A":
+#         for i in teamFilter:
+#             if i not in validCharacters:
+#                 teamFilter = teamFilter.replace(i, "")
 
-    if teamFilter == "":
-        teamFilter = "N/A"
+#     if teamFilter == "":
+#         teamFilter = "N/A"
 
-    searchButton = st.button("Find Events")
+#     searchButton = st.button("Find Events")
 
-    events = data.findEvents(startDate, endDate, country, state, teamFilter)
-    if searchButton:
-        events = data.findEvents(startDate, endDate, country, state, teamFilter)
-        for i in events:
-            eventNames.append(i["name"])
+#     events = data.findEvents(startDate, endDate, country, state, teamFilter)
+#     if searchButton:
+#         events = data.findEvents(startDate, endDate, country, state, teamFilter)
+#         for i in events:
+#             eventNames.append(i["name"])
 
-    eventList = st.selectbox("Choose an Event", eventNames)
-    eventSubmit = st.button("Select Chosen Event")
-    if eventSubmit:
-        if eventNames == []:
-            st.write(":red[You must first Find Events!]")
-        else:
-            cookieManager.set("eventSku", events[eventNames.index(eventList)]["sku"])
-            st.switch_page("pages/search.py")
+#     eventList = st.selectbox("Choose an Event", eventNames)
+#     eventSubmit = st.button("Select Chosen Event")
+#     if eventSubmit:
+#         if eventNames == []:
+#             st.write(":red[You must first Find Events!]")
+#         else:
+#             cookieManager.set("eventSku", events[eventNames.index(eventList)]["sku"])
+#             st.switch_page("pages/search.py")
 
-@st.fragment(run_every="25s")
-def refreshInfo():
-    file = open("teamInfo.json", "r")
-    teamInfo = json.load(file)
-    file.close()
+sku = st.text_input("Event SKU (Found at robotevents.com)")
+skuEnter = st.button("Submit")
 
-    file = open("matches.txt", "r")
-    matches = file.read()
-    file.close()
-    
-    st.session_state["teamInfo"] = teamInfo
-    st.session_state["matches"] = ast.literal_eval(matches)
+if skuEnter:
+    dotenv.set_key(dotenv.find_dotenv(".env"), "eventSku", sku)
+    st.switch_page("pages/search.py")
 
 
-refreshInfo()
-findEvents()
+# findEvents()

@@ -171,7 +171,7 @@ def createSearchPage():
 homeButton = st.button("Home")
 
 if homeButton:
-    st.switch_page("main.py")
+    st.switch_page("pages/search.py")
 
 
 createSearchPage()

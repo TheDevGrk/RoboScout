@@ -1,13 +1,33 @@
 import streamlit as st
 import json
+import ast
 import data
+from multiprocessing.pool import ThreadPool
+
 
 st.set_page_config("Search")
+
+pool = ThreadPool(processes=2)
+
+pool.apply_async(data.refreshData)
 
 display = st.button("Display Results")
 if display:
     st.switch_page("pages/results.py")
 
+
+@st.fragment(run_every="25s")
+def refreshInfo():
+    file = open("teamInfo.json", "r")
+    teamInfo = json.load(file)
+    file.close()
+
+    file = open("matches.txt", "r")
+    matches = file.read()
+    file.close()
+    
+    st.session_state["teamInfo"] = teamInfo
+    st.session_state["matches"] = ast.literal_eval(matches)
 
 @st.fragment(run_every = "25s")
 def refreshFilters():
@@ -32,4 +52,5 @@ def refreshFilters():
             st.session_state["filterData"] = filterData
             st.switch_page("pages/searchResult.py")
 
+refreshInfo()
 refreshFilters()

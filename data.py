@@ -8,10 +8,12 @@ import math
 
 load_dotenv()
 
+
 token = os.getenv("token")
 email = os.getenv("email")
 password = os.getenv("password")
 eventSku = os.getenv("eventSku")
+print(eventSku)
 
 file = open("token.txt", "r")
 token = file.read()
@@ -184,8 +186,7 @@ def fetchEventData(eventSku : str):
 def refreshData():
     while True:
         data = fetchEventData(eventSku)
-
-
+        
         teamInfo = data[0]
         matches = data[1]
 
@@ -239,7 +240,6 @@ def findEvents(startDate : datetime.date = datetime.date(2020, 1, 1),
     return events
 
         
-
 def filterInputs(team, match):
     output = {"popup" : None, "title" : None, "sections" : []}
 
